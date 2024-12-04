@@ -1,7 +1,7 @@
 _id: spc_d35dab035e6a43f3a71023644fde402b
 type: ApiSpec
 parentId: wrk_b113811489604ec4a4ef4a25f0d55783
-modified: 1733346422770
+modified: 1733348074795
 created: 1733344408705
 fileName: Base API
 contents: >-
@@ -11,7 +11,7 @@ contents: >-
     - description: SwaggerHub API Auto Mocking
       url: https://virtserver.swaggerhub.com/652543_1/PTSS-SUPPORT/1.0.2
   info:
-    description: Base API for PTSS SUPPORT
+    description: Base API for the PTSS SUPPORT project
     version: 1.0.2
     title: PTSS SUPPORT Base API
     contact:
