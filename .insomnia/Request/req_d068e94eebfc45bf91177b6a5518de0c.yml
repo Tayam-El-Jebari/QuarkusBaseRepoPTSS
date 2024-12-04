@@ -1,0 +1,39 @@
+_id: req_d068e94eebfc45bf91177b6a5518de0c
+type: Request
+parentId: fld_2ea1368460fc46c39a27b08a56483058
+modified: 1733346429610
+created: 1733346429610
+url: "{{ _.base_url }}/milfs"
+name: Create a milf
+description: ""
+method: POST
+body:
+  mimeType: application/json
+  text: >-
+    {
+      "name": "Daniëlla Tol",
+      "description": "GYATT",
+      "images": [
+        "https://media.licdn.com/dms/image/v2/C5603AQH2SgpZRPrCkg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1541677277591?e=1738800000&v=beta&t=IUNfWsH2UBLy0DhptEvUcYEBcAeO5YvRfFZPVTog0tI"
+      ]
+    }
+parameters: []
+headers:
+  - name: Content-Type
+    disabled: false
+    value: application/json
+authentication:
+  clientId: "{{ _.oauth2ClientId }}"
+  grantType: implicit
+  scope: admin healthcare_professional
+  type: oauth2
+  redirectUrl: "{{ _.oauth2RedirectUrl }}"
+  authorizationUrl: https://your-keycloak-server/auth/realms/your-realm/protocol/openid-connect/auth
+metaSortKey: -1733346429610
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
