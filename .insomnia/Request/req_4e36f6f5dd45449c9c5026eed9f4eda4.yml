@@ -1,10 +1,10 @@
-_id: req_e57be59fa6084bb9a890e281cad279a1
+_id: req_4e36f6f5dd45449c9c5026eed9f4eda4
 type: Request
-parentId: fld_2ea1368460fc46c39a27b08a56483058
-modified: 1733346429610
-created: 1733346429610
-url: "{{ _.base_url }}/milfs"
-name: Get all milfs
+parentId: fld_b46fac4334524ef5a1481fdc912b6f90
+modified: 1733417951815
+created: 1733417951815
+url: "{{ _.base_url }}/products"
+name: Get all products
 description: ""
 method: GET
 body: {}
@@ -20,7 +20,7 @@ parameters:
     value: desc
 headers: []
 authentication: {}
-metaSortKey: -1733346429610
+metaSortKey: -1733417951815
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true

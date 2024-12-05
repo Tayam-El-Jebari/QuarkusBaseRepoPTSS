@@ -1,0 +1,10 @@
+_id: fld_b46fac4334524ef5a1481fdc912b6f90
+type: RequestGroup
+parentId: wrk_b113811489604ec4a4ef4a25f0d55783
+modified: 1733417951811
+created: 1733417951811
+name: product-service
+description: Product management operations
+environment: {}
+environmentPropertyOrder: null
+metaSortKey: -1733417951811
