@@ -79,6 +79,12 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-fault-tolerance</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.mockk</groupId>
+            <artifactId>mockk</artifactId>
+            <version>1.13.8</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
