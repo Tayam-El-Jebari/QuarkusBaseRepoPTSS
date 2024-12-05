@@ -1,6 +1,7 @@
 package org.ptss.support.exceptions
 
 import io.quarkus.logging.Log
+import io.smallrye.faulttolerance.api.RateLimitException
 import jakarta.inject.Inject
 import jakarta.validation.ConstraintViolationException
 import jakarta.ws.rs.ForbiddenException
@@ -9,8 +10,12 @@ import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.ext.ExceptionMapper
 import jakarta.ws.rs.ext.Provider
+import org.eclipse.microprofile.faulttolerance.exceptions.BulkheadException
+import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenException
+import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException
 import org.jboss.resteasy.reactive.ClientWebApplicationException
 import org.ptss.support.core.context.IRequestContextService
+import org.ptss.support.enums.ErrorCode
 
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
@@ -62,6 +67,39 @@ class GlobalExceptionHandler @Inject constructor(
                     requestId = requestId,
                     path = path,
                     details = details
+                )
+            }
+
+            is RateLimitException -> {
+                Log.warn("Rate limit exceeded for request $requestId at path $path")
+                createResponse(
+                    status = Response.Status.TOO_MANY_REQUESTS,
+                    message = exception.message ?: "Too many concurrent requests",
+                    errorCode = ErrorCode.RATE_LIMIT_EXCEEDED.code,
+                    requestId = requestId,
+                    path = path
+                )
+            }
+
+            is TimeoutException -> {
+                Log.error("Request timeout for request $requestId at path $path")
+                createResponse(
+                    status = Response.Status.GATEWAY_TIMEOUT,
+                    message = exception.message ?: "Request timed out",
+                    errorCode = ErrorCode.TIMEOUT.code,
+                    requestId = requestId,
+                    path = path
+                )
+            }
+
+            is CircuitBreakerOpenException -> {
+                Log.error("Circuit breaker open for request $requestId at path $path")
+                createResponse(
+                    status = Response.Status.SERVICE_UNAVAILABLE,
+                    message = exception.message ?: "Service temporarily unavailable",
+                    errorCode = ErrorCode.CIRCUIT_OPEN.code,
+                    requestId = requestId,
+                    path = path
                 )
             }
 
