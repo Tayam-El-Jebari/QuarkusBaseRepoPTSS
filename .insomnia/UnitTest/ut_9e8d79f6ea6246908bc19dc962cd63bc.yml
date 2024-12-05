@@ -1,0 +1,10 @@
+_id: ut_9e8d79f6ea6246908bc19dc962cd63bc
+type: UnitTest
+parentId: uts_b9cc1f865cc744cebc843e7c14a314fc
+modified: 1733430995718
+created: 1733430990189
+requestId: req_wrk_b113811489604ec4a4ef4a25f0d557836672a7ef
+name: GET /health returns 200
+code: |-
+  const response1 = await insomnia.send();
+  expect(response1.status).to.equal(200);

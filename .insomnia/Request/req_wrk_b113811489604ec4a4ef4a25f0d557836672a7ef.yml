@@ -1,9 +1,9 @@
-_id: req_282a006816fe4aa6b315ff50cea21b10
+_id: req_wrk_b113811489604ec4a4ef4a25f0d557836672a7ef
 type: Request
-parentId: fld_b229b24820c041139983de89f414ea88
-modified: 1733417951820
-created: 1733417951820
-url: "{{ _.base_url }}/health"
+parentId: fld_wrk_b113811489604ec4a4ef4a25f0d55783c1ab9924
+modified: 1733430699170
+created: 1733430699170
+url: "{{ base_url }}/health"
 name: Check API health status
 description: ""
 method: GET
@@ -11,7 +11,7 @@ body: {}
 parameters: []
 headers: []
 authentication: {}
-metaSortKey: -1733417951820
+metaSortKey: -1733430699171
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true

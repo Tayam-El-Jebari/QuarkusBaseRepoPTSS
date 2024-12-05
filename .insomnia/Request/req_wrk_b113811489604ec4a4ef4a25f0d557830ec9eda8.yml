@@ -1,9 +1,9 @@
-_id: req_f4af8bd8471d49fa85f577acbe21af84
+_id: req_wrk_b113811489604ec4a4ef4a25f0d557830ec9eda8
 type: Request
-parentId: fld_b46fac4334524ef5a1481fdc912b6f90
-modified: 1733417951818
-created: 1733417951818
-url: "{{ _.base_url }}/products"
+parentId: fld_wrk_b113811489604ec4a4ef4a25f0d557838964bb97
+modified: 1733430699176
+created: 1733430699176
+url: "{{ base_url }}/products"
 name: Create a product
 description: ""
 method: POST
@@ -20,16 +20,15 @@ body:
 parameters: []
 headers:
   - name: Content-Type
-    disabled: false
     value: application/json
 authentication:
-  clientId: "{{ _.oauth2ClientId }}"
+  clientId: "{{ oauth2ClientId }}"
   grantType: implicit
   scope: admin healthcare_professional
   type: oauth2
-  redirectUrl: "{{ _.oauth2RedirectUrl }}"
+  redirectUrl: "{{ oauth2RedirectUrl }}"
   authorizationUrl: https://your-keycloak-server/auth/realms/your-realm/protocol/openid-connect/auth
-metaSortKey: -1733417951818
+metaSortKey: -1733430699176
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true

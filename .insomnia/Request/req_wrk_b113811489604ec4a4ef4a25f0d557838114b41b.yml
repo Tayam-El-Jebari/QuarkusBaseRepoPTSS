@@ -1,9 +1,9 @@
-_id: req_4e36f6f5dd45449c9c5026eed9f4eda4
+_id: req_wrk_b113811489604ec4a4ef4a25f0d557838114b41b
 type: Request
-parentId: fld_b46fac4334524ef5a1481fdc912b6f90
-modified: 1733417951815
-created: 1733417951815
-url: "{{ _.base_url }}/products"
+parentId: fld_wrk_b113811489604ec4a4ef4a25f0d557838964bb97
+modified: 1733430699184
+created: 1733430699184
+url: "{{ base_url }}/products"
 name: Get all products
 description: ""
 method: GET
@@ -20,7 +20,7 @@ parameters:
     value: desc
 headers: []
 authentication: {}
-metaSortKey: -1733417951815
+metaSortKey: -1733430699184
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true
