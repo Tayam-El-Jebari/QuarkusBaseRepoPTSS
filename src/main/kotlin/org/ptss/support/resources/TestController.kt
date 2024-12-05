@@ -1,5 +1,6 @@
 package org.ptss.support.resources
 
+import io.smallrye.faulttolerance.api.RateLimit
 import jakarta.inject.Inject
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.GET
@@ -23,6 +24,7 @@ class TestController @Inject constructor(
     @Path("/success")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Test successful response")
+    @RateLimit(value = 2, window = 10) // 2 requests per 10 seconds
     @APIResponses(
         APIResponse(responseCode = "200", description = "Successful operation"),
     )
