@@ -8,7 +8,7 @@ This repository includes an [Insomnia design document](https://docs.insomnia.res
 2. Open Insomnia
 3. Click on Projects > Git Clone
 4. Enter the repository URL and your credentials
-5. For more info, refer to the [Sync with Git](https://docs.insomnia.rest/insomnia/git-sync) documentation of Insomnia.
+> 📖 [Sync with Git](https://docs.insomnia.rest/insomnia/git-sync)
 
 ## Working with Insomnia Design Documents
 An [Insomnia design document](https://docs.insomnia.rest/insomnia/design-documents) includes:
@@ -92,4 +92,4 @@ Create and run tests in the `TEST` tab to ensure API reliability.
 ### Important Notes
 - Always sync your Insomnia collection before making changes
 - The design document is stored in the `.insomnia` directory
-- After pulling changes through Git, you may need to click "Sync" in Insomnia to refresh the view
+- After pulling changes through Git, you may need to click `Sync` in Insomnia to refresh the view
