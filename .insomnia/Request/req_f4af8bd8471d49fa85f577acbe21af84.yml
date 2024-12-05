@@ -1,10 +1,10 @@
-_id: req_d068e94eebfc45bf91177b6a5518de0c
+_id: req_f4af8bd8471d49fa85f577acbe21af84
 type: Request
-parentId: fld_2ea1368460fc46c39a27b08a56483058
-modified: 1733346429610
-created: 1733346429610
-url: "{{ _.base_url }}/milfs"
-name: Create a milf
+parentId: fld_b46fac4334524ef5a1481fdc912b6f90
+modified: 1733417951818
+created: 1733417951818
+url: "{{ _.base_url }}/products"
+name: Create a product
 description: ""
 method: POST
 body:
@@ -29,7 +29,7 @@ authentication:
   type: oauth2
   redirectUrl: "{{ _.oauth2RedirectUrl }}"
   authorizationUrl: https://your-keycloak-server/auth/realms/your-realm/protocol/openid-connect/auth
-metaSortKey: -1733346429610
+metaSortKey: -1733417951818
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true

@@ -1,7 +1,7 @@
 _id: spc_d35dab035e6a43f3a71023644fde402b
 type: ApiSpec
 parentId: wrk_b113811489604ec4a4ef4a25f0d55783
-modified: 1733348074795
+modified: 1733417908232
 created: 1733344408705
 fileName: Base API
 contents: >-
@@ -20,26 +20,26 @@ contents: >-
       name: Apache 2.0
       url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
   tags:
-    - name: milf-service
-      description: Milf management operations
+    - name: product-service
+      description: Product management operations
     - name: monitoring
       description: Health and monitoring endpoints
 
   paths:
-    /milfs:
+    /products:
       get:
         tags:
-          - milf-service
-        summary: Get all milfs
-        description: Retrieves a paginated list of all milfs with optional sorting
-        operationId: getAllMilfs
+          - product-service
+        summary: Get all products
+        description: Retrieves a paginated list of all products with optional sorting
+        operationId: getAllProducts
         parameters:
           - $ref: '#/components/parameters/cursor'
           - $ref: '#/components/parameters/pageSize'
           - $ref: '#/components/parameters/sortOrder'
         responses:
           '200':
-            description: List of milfs
+            description: List of products
             content:
               application/json:
                 schema:
@@ -51,7 +51,7 @@ contents: >-
                     data:
                       type: array
                       items:
-                        $ref: '#/components/schemas/Milf'
+                        $ref: '#/components/schemas/Product'
                     pagination:
                       $ref: '#/components/schemas/PaginationResponse'
           '401':
@@ -60,10 +60,10 @@ contents: >-
             $ref: '#/components/responses/Forbidden'
       post:
         tags:
-          - milf-service
-        summary: Create a milf
-        description: Creates a new milf entry with the provided details
-        operationId: createMilf
+          - product-service
+        summary: Create a product
+        description: Creates a new product entry with the provided details
+        operationId: createProduct
         security:
           - keycloak: ['admin', 'healthcare_professional']
         requestBody:
@@ -71,14 +71,14 @@ contents: >-
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MilfCreate'
+                $ref: '#/components/schemas/ProductCreate'
         responses:
           '201':
-            description: Returns the created milf
+            description: Returns the created product
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/Milf'
+                  $ref: '#/components/schemas/Product'
           '400':
             $ref: '#/components/responses/BadRequest'
           '401':
@@ -109,7 +109,7 @@ contents: >-
 
   components:
     schemas:
-      Milf:
+      Product:
         type: object
         required:
           - id
@@ -134,7 +134,7 @@ contents: >-
           images:
             - "https://media.licdn.com/dms/image/v2/C5603AQH2SgpZRPrCkg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1541677277591?e=1738800000&v=beta&t=IUNfWsH2UBLy0DhptEvUcYEBcAeO5YvRfFZPVTog0tI"
 
-      MilfCreate:
+      ProductCreate:
         type: object
         required:
           - name
