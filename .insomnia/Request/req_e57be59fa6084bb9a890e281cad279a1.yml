@@ -1,0 +1,30 @@
+_id: req_e57be59fa6084bb9a890e281cad279a1
+type: Request
+parentId: fld_2ea1368460fc46c39a27b08a56483058
+modified: 1733346429610
+created: 1733346429610
+url: "{{ _.base_url }}/milfs"
+name: Get all milfs
+description: ""
+method: GET
+body: {}
+parameters:
+  - name: cursor
+    disabled: true
+    value: string
+  - name: size
+    disabled: true
+    value: "20"
+  - name: sortOrder
+    disabled: true
+    value: desc
+headers: []
+authentication: {}
+metaSortKey: -1733346429610
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global

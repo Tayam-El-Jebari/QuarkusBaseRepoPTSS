@@ -1,0 +1,21 @@
+_id: req_7a82f02dd5684409ac925c08cb66db78
+type: Request
+parentId: fld_725003581dc84889ac6925d89f262168
+modified: 1733346429614
+created: 1733346429614
+url: "{{ _.base_url }}/health"
+name: Check API health status
+description: ""
+method: GET
+body: {}
+parameters: []
+headers: []
+authentication: {}
+metaSortKey: -1733346429614
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global

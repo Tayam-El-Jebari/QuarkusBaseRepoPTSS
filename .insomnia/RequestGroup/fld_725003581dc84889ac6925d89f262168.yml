@@ -1,0 +1,10 @@
+_id: fld_725003581dc84889ac6925d89f262168
+type: RequestGroup
+parentId: wrk_b113811489604ec4a4ef4a25f0d55783
+modified: 1733346429609
+created: 1733346429609
+name: monitoring
+description: Health and monitoring endpoints
+environment: {}
+environmentPropertyOrder: null
+metaSortKey: -1733346429609
