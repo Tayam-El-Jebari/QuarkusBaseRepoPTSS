@@ -6,7 +6,8 @@ This repository includes an [Insomnia design document](https://docs.insomnia.res
 
 1. Install [Insomnia](https://insomnia.rest/download)
 2. Open Insomnia
-3. Click on Projects > Git Clone
+3. Navigate to your desired workspace
+3. Click on Create > Git Clone
 4. Enter the repository URL and your credentials
 > 📖 [Sync with Git](https://docs.insomnia.rest/insomnia/git-sync)
 
@@ -83,8 +84,8 @@ Create and run tests in the `TEST` tab to ensure API reliability.
 > 💡 Unfortunately, I did not find a way to make it so that changes are automatically pushed and pulled to the `.insomnia` directory without making a commit. If this was possible it would make it so that you would only need GitHub Desktop or you preferred Git client for all changes. If someone finds a way to implement this, please let me know. 
 
 #### For Insomnia Collection Changes
-- Push changes: Use the Git Sync button in Insomnia (bottom left)
-- Pull changes: Use the Git Sync button to sync with the latest version
+- Push changes: Use the `Commit` button in Insomnia
+- Pull changes: Use the `Refresh` or `Pull` button to sync with the latest version
 
 #### For Code Changes
 - Use GitHub Desktop or your preferred Git client for all code-related changes
@@ -92,4 +93,4 @@ Create and run tests in the `TEST` tab to ensure API reliability.
 ### Important Notes
 - Always sync your Insomnia collection before making changes
 - The design document is stored in the `.insomnia` directory
-- After pulling changes through Git, you may need to click `Sync` in Insomnia to refresh the view
+- After pulling changes through Git, you may need to click `Refresh` or `Pull` in Insomnia to refresh the view
