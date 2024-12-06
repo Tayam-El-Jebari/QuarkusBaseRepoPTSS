@@ -1,4 +1,4 @@
-package cqrs.core.commands
+package cqrs.core.commands.product
 
 data class CreateProductCommand(
     val name: String,

@@ -1,11 +1,11 @@
 package cqrs.infrastructure.services
 
-import cqrs.core.commands.CreateProductCommand
+import cqrs.core.commands.product.CreateProductCommand
 import cqrs.core.dtos.ProductDto
 import cqrs.core.interfaces.ICommandHandler
 import cqrs.core.interfaces.IQueryHandler
-import cqrs.core.queries.GetAllProductsQuery
-import cqrs.core.queries.GetProductByIdQuery
+import cqrs.core.queries.product.GetAllProductsQuery
+import cqrs.core.queries.product.GetProductByIdQuery
 import cqrs.infrastructure.util.executeWithExceptionLoggingAsync
 import jakarta.enterprise.context.ApplicationScoped
 import org.slf4j.Logger
@@ -22,7 +22,6 @@ class ProductService(
             operation = { getProductByIdHandler.handleAsync(GetProductByIdQuery(productId)) },
             logMessage = "Error retrieving product $productId",
             exceptionHandling = { ex ->
-                // Custom exception handling logic can be added here if needed.
                 RuntimeException("Custom message: Unable to retrieve product with ID: $productId", ex)
             }
         )
@@ -33,7 +32,6 @@ class ProductService(
             operation = { getAllProductsHandler.handleAsync(GetAllProductsQuery()) },
             logMessage = "Error retrieving all products",
             exceptionHandling = { ex ->
-                // Example: Wrap and throw a custom exception.
                 RuntimeException("Custom message: Unable to retrieve products", ex)
             }
         )
@@ -44,7 +42,6 @@ class ProductService(
             operation = { createProductHandler.handleAsync(command) },
             logMessage = "Error creating product ${command.name}",
             exceptionHandling = { ex ->
-                // Example: Add additional context to the exception before rethrowing.
                 IllegalStateException("Custom message: Failed to create product ${command.name}", ex)
             }
         )
