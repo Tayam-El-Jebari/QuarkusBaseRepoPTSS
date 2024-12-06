@@ -1,0 +1,16 @@
+_id: env_env_6ed45aab4bc84466a04cfc7949f3654a_sub__e7182112
+type: Environment
+parentId: env_6ed45aab4bc84466a04cfc7949f3654a
+modified: 1733430699207
+created: 1733430699207
+name: OpenAPI env virtserver.swaggerhub.com
+data:
+  scheme: https
+  base_path: /652543_1/PTSS-SUPPORT/1.0.2
+  host: virtserver.swaggerhub.com
+  oauth2ClientId: clientId
+  oauth2RedirectUrl: http://localhost/
+dataPropertyOrder: null
+color: null
+isPrivate: false
+metaSortKey: 1733430699207

@@ -1,0 +1,14 @@
+_id: env_908bee66a5a942878a7578a373ebc610
+type: Environment
+parentId: env_6ed45aab4bc84466a04cfc7949f3654a
+modified: 1733345979492
+created: 1733345825201
+name: Production
+data:
+  base_url: https://milf-service.ptss-support.com
+dataPropertyOrder:
+  "&":
+    - base_url
+color: "#f44336"
+isPrivate: false
+metaSortKey: 1733345825201
