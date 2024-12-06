@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: quarkus-app
+    ports:
+      - "8080:8080"
+      - "5005:5005"  # Debug port
+    environment:
+      - QUARKUS_HTTP_HOST=0.0.0.0
+      # Keycloak configuration
+      - QUARKUS_OIDC_AUTH_SERVER_URL=http://keycloak:8080/realms/quarkus
+      - QUARKUS_OIDC_CLIENT_ID=quarkus-app
+      - QUARKUS_OIDC_CREDENTIALS_SECRET=your-client-secret
+    volumes:
+      - ./:/app
+      - ~/.m2:/root/.m2  # Maven cache
+    depends_on:
+      - keycloak
+    networks:
+      - quarkus-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.0
+    container_name: keycloak
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://keycloak-db:5432/keycloak
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_PASSWORD=keycloak
+      - KC_HEALTH_ENABLED=true
+    command:
+      - start-dev
+    ports:
+      - "8180:8080"
+    depends_on:
+      - keycloak-db
+    networks:
+      - quarkus-net
+
+  keycloak-db:
+    image: postgres:15
+    container_name: keycloak-db
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=keycloak
+    volumes:
+      - keycloak-data:/var/lib/postgresql/data
+    networks:
+      - quarkus-net
+
+volumes:
+  keycloak-data:
+
+networks:
+  quarkus-net:
+    driver: bridge
