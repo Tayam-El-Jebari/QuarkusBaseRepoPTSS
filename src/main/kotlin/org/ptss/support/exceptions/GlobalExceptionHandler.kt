@@ -29,43 +29,45 @@ class GlobalExceptionHandler @Inject constructor(
 
         return when (exception) {
             is APIException -> createResponse(
-                status = Response.Status.fromStatusCode(exception.errorCode.status),
+                errorCode = exception.errorCode,
                 message = exception.message,
-                errorCode = exception.errorCode.code,
                 requestId = requestId,
-                path = path,
+                details = exception.details
             )
 
             is ClientWebApplicationException -> {
                 val message = exception.message ?: "Client error: ${exception.response.status}"
                 Log.error("Client error occurred for request $requestId: $message")
                 createResponse(
-                    status = Response.Status.fromStatusCode(exception.response.status),
+                    errorCode = ErrorCode.INTERNAL_ERROR,
                     message = message,
-                    requestId = requestId,
-                    path = path
+                    requestId = requestId
                 )
             }
 
             is ForbiddenException -> {
                 Log.warn("Unauthorized access attempt for request $requestId at path $path")
                 createResponse(
-                    status = Response.Status.FORBIDDEN,
+                    errorCode = ErrorCode.INSUFFICIENT_PERMISSIONS,
                     message = "Client does not have the proper rights to access this resource",
-                    requestId = requestId,
-                    path = path
+                    requestId = requestId
                 )
             }
 
             is ConstraintViolationException -> {
-                val details = exception.constraintViolations.associate {
-                    it.propertyPath.toString() to it.message
-                }
+                val details = ErrorDetails(
+                    constraints = exception.constraintViolations.associate { violation ->
+                        violation.propertyPath.toString() to mapOf(
+                            "constraint" to violation.constraintDescriptor.annotation.annotationClass.simpleName,
+                            "message" to violation.message,
+                            "value" to violation.invalidValue?.toString()
+                        )
+                    }
+                )
                 createResponse(
-                    status = Response.Status.BAD_REQUEST,
+                    errorCode = ErrorCode.VALIDATION_ERROR,
                     message = "Validation failed",
                     requestId = requestId,
-                    path = path,
                     details = details
                 )
             }
@@ -73,67 +75,55 @@ class GlobalExceptionHandler @Inject constructor(
             is RateLimitException -> {
                 Log.warn("Rate limit exceeded for request $requestId at path $path")
                 createResponse(
-                    status = Response.Status.TOO_MANY_REQUESTS,
+                    errorCode = ErrorCode.RATE_LIMIT_EXCEEDED,
                     message = exception.message ?: "Too many concurrent requests",
-                    errorCode = ErrorCode.RATE_LIMIT_EXCEEDED.code,
                     requestId = requestId,
-                    path = path
                 )
             }
 
             is TimeoutException -> {
                 Log.error("Request timeout for request $requestId at path $path")
                 createResponse(
-                    status = Response.Status.GATEWAY_TIMEOUT,
+                    errorCode = ErrorCode.GATEWAY_TIMEOUT,
                     message = exception.message ?: "Request timed out",
-                    errorCode = ErrorCode.TIMEOUT.code,
-                    requestId = requestId,
-                    path = path
+                    requestId = requestId
                 )
             }
 
             is CircuitBreakerOpenException -> {
                 Log.error("Circuit breaker open for request $requestId at path $path")
                 createResponse(
-                    status = Response.Status.SERVICE_UNAVAILABLE,
+                    errorCode = ErrorCode.SERVICE_UNAVAILABLE,
                     message = exception.message ?: "Service temporarily unavailable",
-                    errorCode = ErrorCode.CIRCUIT_OPEN.code,
-                    requestId = requestId,
-                    path = path
+                    requestId = requestId
                 )
             }
 
             else -> {
                 Log.error("Unhandled exception for request $requestId", exception)
                 createResponse(
-                    status = Response.Status.INTERNAL_SERVER_ERROR,
+                    errorCode = ErrorCode.INTERNAL_ERROR,
                     message = "Internal server error",
-                    errorCode = "SYSTEM0001",
-                    requestId = requestId,
-                    path = path
+                    requestId = requestId
                 )
             }
         }
     }
 
     private fun createResponse(
+        errorCode: ErrorCode,
         message: String,
-        status: Response.Status,
-        errorCode: String? = null,
         requestId: String? = null,
-        path: String? = null,
-        details: Map<String, Any>? = null
+        details: ErrorDetails? = null
     ): Response {
         val error = ServiceError(
-            status = status.statusCode,
+            code = errorCode.code,
             message = message,
-            errorCode = errorCode ?: status.statusCode.toString(),
             requestId = requestId,
-            path = path,
             details = details
         )
 
-        return Response.status(status)
+        return Response.status(errorCode.status)
             .entity(error)
             .build()
     }

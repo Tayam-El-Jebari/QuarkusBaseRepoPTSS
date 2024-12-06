@@ -2,25 +2,29 @@ package org.ptss.support.enums
 
 enum class ErrorCode(
     val code: String,
-    val status: Int = 400,
+    val status: Int,
     val description: String
 ) {
-    INVALID_TOKEN("AUTH0001", 401, "The provided authentication token is invalid or expired"),
+    // Authentication errors
+    INVALID_TOKEN("INVALID_TOKEN", 401, "Invalid or expired authentication token"),
+    INVALID_CREDENTIALS("INVALID_CREDENTIALS", 401, "Invalid email or password provided"),
+    EXPIRED_TOKEN("EXPIRED_TOKEN", 401, "Authentication token has expired"),
 
-    INVALID_REQUEST("VAL0001", 400, "The request contains invalid parameters"),
+    // Authorization errors
+    INSUFFICIENT_PERMISSIONS("INSUFFICIENT_PERMISSIONS", 403, "User does not have required permissions"),
 
-    RESOURCE_NOT_FOUND("RES0001", 404, "The requested resource could not be found"),
+    // Validation errors
+    VALIDATION_ERROR("VALIDATION_ERROR", 400, "Request validation failed"),
+    DUPLICATE_ENTRY("DUPLICATE_ENTRY", 400, "Resource already exists"),
 
-    INTERNAL_ERROR("SYS0001", 500, "An unexpected system error occurred"),
+    // Resource errors
+    USER_NOT_FOUND("USER_NOT_FOUND", 404, "The requested user was not found"),
+    GROUP_NOT_FOUND("GROUP_NOT_FOUND", 404, "The specified group does not exist"),
 
-    RATE_LIMIT_EXCEEDED("RATE0001", 429, "Too many requests"),
-
-    TIMEOUT("TIME0001", 504, "Request timed out"),
-
-    CIRCUIT_OPEN("CIRC0001", 503, "Service temporarily unavailable");
-
-
-
+    INTERNAL_ERROR("INTERNAL_ERROR", 500, "An unexpected system error occurred"),
+    RATE_LIMIT_EXCEEDED("RATE_LIMIT_EXCEEDED", 429, "Too many requests"),
+    SERVICE_UNAVAILABLE("SERVICE_UNAVAILABLE", 503, "Service temporarily unavailable"),
+    GATEWAY_TIMEOUT("GATEWAY_TIMEOUT", 504, "Request timed out");
 
     companion object {
         fun fromCode(code: String): ErrorCode? = values().find { it.code == code }

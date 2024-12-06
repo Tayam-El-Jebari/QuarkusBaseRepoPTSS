@@ -5,5 +5,6 @@ import org.ptss.support.enums.ErrorCode
 
 class APIException(
     override val message: String,
-    val errorCode: ErrorCode
+    val errorCode: ErrorCode,
+    val details: ErrorDetails? = null
 ) : ValidationException(message)
