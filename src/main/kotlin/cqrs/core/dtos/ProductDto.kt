@@ -4,5 +4,7 @@ import java.math.BigDecimal
 
 data class ProductDto(
     val name: String,
-    val price: BigDecimal
+    val description: String,
+    val media: List<String>
 )
+

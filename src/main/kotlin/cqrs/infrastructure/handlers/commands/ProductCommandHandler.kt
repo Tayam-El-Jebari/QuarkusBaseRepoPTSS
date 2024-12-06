@@ -17,7 +17,8 @@ class CreateProductCommandHandler(
         return try {
             val product = Product(
                 name = command.name,
-                price = command.price,
+                description = command.description,
+                media = command.media
             )
             productRepository.create(product)
         } catch (ex: Exception) {

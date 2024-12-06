@@ -6,6 +6,7 @@ import cqrs.core.interfaces.ICommandHandler
 import cqrs.core.interfaces.IQueryHandler
 import cqrs.core.queries.GetAllProductsQuery
 import cqrs.core.queries.GetProductByIdQuery
+import cqrs.infrastructure.util.executeWithExceptionLoggingAsync
 import jakarta.enterprise.context.ApplicationScoped
 import org.slf4j.Logger
 
@@ -17,29 +18,23 @@ class ProductService(
     private val logger: Logger
 ) {
     suspend fun getProductByIdAsync(productId: String): ProductDto? {
-        return try {
-            getProductByIdHandler.handleAsync(GetProductByIdQuery(productId))
-        } catch (ex: Exception) {
-            logger.error("Error retrieving product $productId", ex)
-            throw ex
-        }
+        return logger.executeWithExceptionLoggingAsync(
+            operation = { getProductByIdHandler.handleAsync(GetProductByIdQuery(productId)) },
+            errorMessage = "Error retrieving product $productId"
+        )
     }
 
     suspend fun getAllProductsAsync(): List<ProductDto> {
-        return try {
-            getAllProductsHandler.handleAsync(GetAllProductsQuery())
-        } catch (ex: Exception) {
-            logger.error("Error retrieving all products", ex)
-            throw ex
-        }
+        return logger.executeWithExceptionLoggingAsync(
+            operation = { getAllProductsHandler.handleAsync(GetAllProductsQuery()) },
+            errorMessage = "Error retrieving all products"
+        )
     }
 
     suspend fun createProductAsync(command: CreateProductCommand): String {
-        return try {
-            createProductHandler.handleAsync(command)
-        } catch (ex: Exception) {
-            logger.error("Error creating product ${command.name}", ex)
-            throw ex
-        }
+        return logger.executeWithExceptionLoggingAsync(
+            operation = { createProductHandler.handleAsync(command) },
+            errorMessage = "Error creating product ${command.name}"
+        )
     }
 }

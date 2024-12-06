@@ -19,7 +19,8 @@ class GetProductByIdQueryHandler(
             productRepository.getById(query.id)?.let { product ->
                 ProductDto(
                     name = product.name,
-                    price = product.price,
+                    description = product.description,
+                    media = product.media
                 )
             }
         } catch (ex: Exception) {
@@ -28,6 +29,7 @@ class GetProductByIdQueryHandler(
         }
     }
 }
+
 
 @ApplicationScoped
 class GetAllProductsQueryHandler(
@@ -40,7 +42,8 @@ class GetAllProductsQueryHandler(
             productRepository.getAll().map { product ->
                 ProductDto(
                     name = product.name,
-                    price = product.price
+                    description = product.description,
+                    media = product.media
                 )
             }
         } catch (ex: Exception) {
