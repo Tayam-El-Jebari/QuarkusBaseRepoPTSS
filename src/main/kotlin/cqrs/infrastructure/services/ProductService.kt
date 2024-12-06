@@ -20,21 +20,33 @@ class ProductService(
     suspend fun getProductByIdAsync(productId: String): ProductDto? {
         return logger.executeWithExceptionLoggingAsync(
             operation = { getProductByIdHandler.handleAsync(GetProductByIdQuery(productId)) },
-            errorMessage = "Error retrieving product $productId"
+            logMessage = "Error retrieving product $productId",
+            exceptionHandling = { ex ->
+                // Custom exception handling logic can be added here if needed.
+                RuntimeException("Custom message: Unable to retrieve product with ID: $productId", ex)
+            }
         )
     }
 
     suspend fun getAllProductsAsync(): List<ProductDto> {
         return logger.executeWithExceptionLoggingAsync(
             operation = { getAllProductsHandler.handleAsync(GetAllProductsQuery()) },
-            errorMessage = "Error retrieving all products"
+            logMessage = "Error retrieving all products",
+            exceptionHandling = { ex ->
+                // Example: Wrap and throw a custom exception.
+                RuntimeException("Custom message: Unable to retrieve products", ex)
+            }
         )
     }
 
     suspend fun createProductAsync(command: CreateProductCommand): String {
         return logger.executeWithExceptionLoggingAsync(
             operation = { createProductHandler.handleAsync(command) },
-            errorMessage = "Error creating product ${command.name}"
+            logMessage = "Error creating product ${command.name}",
+            exceptionHandling = { ex ->
+                // Example: Add additional context to the exception before rethrowing.
+                IllegalStateException("Custom message: Failed to create product ${command.name}", ex)
+            }
         )
     }
 }

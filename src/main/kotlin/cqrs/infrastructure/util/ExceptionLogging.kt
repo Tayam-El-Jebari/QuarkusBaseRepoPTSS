@@ -4,13 +4,14 @@ import org.slf4j.Logger
 
 suspend fun <T> Logger.executeWithExceptionLoggingAsync(
     operation: suspend () -> T,
-    errorMessage: String,
+    logMessage: String,
+    exceptionHandling: ((Exception) -> Exception)? = null,
     vararg args: Any
 ): T {
     return try {
         operation()
     } catch (ex: Exception) {
-        this.error(errorMessage.format(*args), ex)
-        throw ex
+        this.error(logMessage.format(*args), ex)
+        throw exceptionHandling?.invoke(ex) ?: ex
     }
 }

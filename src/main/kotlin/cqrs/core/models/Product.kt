@@ -1,7 +1,6 @@
 package cqrs.core.models
 
-import java.math.BigDecimal
-import java.util.*
+import java.util.UUID
 
 data class Product(
     val id: String = UUID.randomUUID().toString(),
