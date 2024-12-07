@@ -1,0 +1,23 @@
+_id: req_wrk_b113811489604ec4a4ef4a25f0d55783ee15caf7
+type: Request
+parentId: fld_wrk_b113811489604ec4a4ef4a25f0d557838964bb97
+modified: 1733525600691
+created: 1733525492281
+url: "{{ base_url }}/products/{% response 'body',
+  'req_wrk_b113811489604ec4a4ef4a25f0d557830ec9eda8', 'b64::JC5pZA==::46b',
+  'never', 60 %}"
+name: Get product by ID
+description: ""
+method: GET
+body: {}
+parameters: []
+headers: []
+authentication: {}
+metaSortKey: -1733525492281
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
