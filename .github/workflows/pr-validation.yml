@@ -1,0 +1,27 @@
+name: 🧪 PR Validation
+
+on:
+  pull_request:
+    branches: [ development, main ]
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+          
+      - name: Build and Test
+        run: ./mvnw clean verify
+        
+      # Placeholder for future tests
+      - name: Future Tests
+        run: |
+          echo "Placeholder for future tests"

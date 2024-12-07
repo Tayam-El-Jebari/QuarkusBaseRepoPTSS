@@ -1,0 +1,41 @@
+name: 🚀 Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      tag:
+        description: 'Image tag to deploy'
+        required: true
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install OpenShift CLI
+        run: |
+          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+          tar -xvf openshift-client-linux.tar.gz -C /usr/local/bin
+          chmod +x /usr/local/bin/oc
+      
+      - name: Deploy to OpenShift Prod
+        run: |
+          oc login --token=${{ secrets.OSC_TOKEN }} --server=${{ secrets.OSC_TOKEN }}
+          oc project ${{ secrets.OSC_PROD_PROJECT }}
+          
+          # Get image tag
+          TAG=${{ github.event.inputs.tag }}
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG=$(date +'%Y%m%d')-${GITHUB_SHA::7}
+          fi
+          
+          # Update deployment
+          oc set image deployment/${{ github.event.repository.name }} \
+            ${{ github.event.repository.name }}=ghcr.io/${{ github.repository }}:${TAG}
+          
+          # Rollout and wait for deployment
+          oc rollout status deployment/${{ github.event.repository.name }} --timeout=300s

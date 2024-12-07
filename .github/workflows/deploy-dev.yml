@@ -1,0 +1,57 @@
+name: 🚀 Deploy to Development
+
+on:
+  push:
+    branches: [ development ]
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      tag:
+        description: 'Image tag (optional)'
+        required: false
+        default: 'latest'
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Generate Version Tag
+        id: generate_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.tag }}" != "latest" ]; then
+            echo "version=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(date +'%Y%m%d')-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}:${{ steps.generate_tag.outputs.version }} .
+          docker push ghcr.io/${{ github.repository }}:${{ steps.generate_tag.outputs.version }}
+      
+      - name: Install OpenShift CLI
+        run: |
+          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+          tar -xvf openshift-client-linux.tar.gz -C /usr/local/bin
+          chmod +x /usr/local/bin/oc
+      
+      - name: Deploy to OpenShift Dev
+        run: |
+          oc login --token=${{ secrets.OSC_TOKEN }} --server=${{ secrets.OSC_SERVER }}
+          oc project ${{ secrets.OSC_DEV_PROJECT }}
+          
+          # Create/update deployment
+          oc set image deployment/${{ github.event.repository.name }} \
+            ${{ github.event.repository.name }}=ghcr.io/${{ github.repository }}:${{ steps.generate_tag.outputs.version }}
+          
+          # Rollout and wait for deployment
+          oc rollout status deployment/${{ github.event.repository.name }} --timeout=180s
