@@ -55,3 +55,13 @@ jobs:
           
           # Rollout and wait for deployment
           oc rollout status deployment/${{ github.event.repository.name }} --timeout=180s
+
+      - name: Run E2E Tests
+        run: |
+          echo "TODO: Add E2E tests using your preferred testing framework"
+          echo "These tests should run against the newly deployed dev environment"
+  
+      - name: Performance Tests (Basic)
+        run: |
+          echo "TODO: Add basic k6 performance tests against dev environment"
+          echo "More extensive performance testing will be done in production deployment"

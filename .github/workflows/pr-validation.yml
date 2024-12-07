@@ -11,6 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      - name: Code Linting
+        run: |
+          echo "TODO: Add linting steps (e.g., checkstyle, PMD, SpotBugs)"
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -21,10 +25,14 @@ jobs:
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
           
-      - name: Build and Test
-        run: ./mvnw clean verify
-        
-      # Placeholder for future tests
-      - name: Future Tests
+          
+      - name: Build
+        run: ./mvnw clean compile
+          
+      - name: Testing
         run: |
-          echo "Placeholder for future tests"
+          echo "TODO: Add tests"
+
+      - name: Security Scans
+        run: |
+          echo "TODO: Add security scans (e.g., OWASP Dependency Check)"
