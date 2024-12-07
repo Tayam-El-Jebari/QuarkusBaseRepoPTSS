@@ -20,6 +20,7 @@ enum class ErrorCode(
     // Resource errors
     USER_NOT_FOUND("USER_NOT_FOUND", 404, "The requested user was not found"),
     GROUP_NOT_FOUND("GROUP_NOT_FOUND", 404, "The specified group does not exist"),
+    NOT_FOUND("NOT_FOUND", 404, "The requested resource was not found"),
 
     INTERNAL_ERROR("INTERNAL_ERROR", 500, "An unexpected system error occurred"),
     RATE_LIMIT_EXCEEDED("RATE_LIMIT_EXCEEDED", 429, "Too many requests"),
