@@ -102,7 +102,10 @@ jobs:
           # Construct route host from parts
           ROUTE_HOST="${{ github.event.repository.name }}-dev.${{ secrets.APPS_DOMAIN }}"
           
-          helm upgrade --install ${{ github.event.repository.name }} ./helm \
+          # Create a valid helm release name
+          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+          
+          helm upgrade --install ${HELM_RELEASE_NAME} ./helm \
             --namespace ${{ secrets.OSC_DEV_PROJECT }} \
             --values ./helm/values-dev.yaml \
             --set image.registry=ghcr.io \
