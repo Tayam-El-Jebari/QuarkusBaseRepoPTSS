@@ -1,8 +1,10 @@
 package org.ptss.support.cqrs.infrastructure.repositories
 
+import jakarta.enterprise.context.ApplicationScoped
 import org.ptss.support.cqrs.core.models.Product
 import org.ptss.support.cqrs.infrastructure.interfaces.IProductRepository
 
+@ApplicationScoped
 class ProductRepository : IProductRepository {
     private val products = mutableListOf<Product>()
 
