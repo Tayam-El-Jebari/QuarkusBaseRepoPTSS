@@ -41,6 +41,11 @@ jobs:
         run: |
           echo "TODO: Add security scans (e.g., OWASP Dependency Check)"
 
+      - name: Prepare Artifact Directory
+        run: |
+          mkdir -p build/quarkus-app/
+          cp -r target/quarkus-app/* build/quarkus-app/
+
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:

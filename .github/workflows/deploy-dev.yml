@@ -24,13 +24,16 @@ jobs:
           echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
           # For artifact name
           echo "artifact_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
+
+      - name: Create Build Directory
+        run: mkdir -p build/quarkus-app/
     
       - name: Download Build Artifact
         id: download
         uses: actions/download-artifact@v3
         with:
           name: ${{ steps.repo_name.outputs.artifact_name }}-build
-          path: target/quarkus-app/
+          path: build/quarkus-app/
         continue-on-error: true  # Continue if no artifact exists
 
       - name: Set up JDK if no artifact exists
@@ -46,6 +49,9 @@ jobs:
         run: |
           chmod +x mvnw
           ./mvnw clean package -DskipTests
+          # Copy to the correct location for Docker
+          mkdir -p build/quarkus-app/
+          cp -r target/quarkus-app/* build/quarkus-app/
       
       - name: Generate Version Tag
         id: generate_tag
@@ -62,6 +68,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify Build Directory
+        run: |
+          echo "Checking build directory contents:"
+          ls -la build/quarkus-app/
       
       - name: Build and Push Docker Image
         run: |
