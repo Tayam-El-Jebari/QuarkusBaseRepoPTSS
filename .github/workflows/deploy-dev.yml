@@ -99,11 +99,9 @@ jobs:
       
       - name: Deploy to OpenShift Dev
         run: |
-          # Construct route host from parts
-          ROUTE_HOST="${{ github.event.repository.name }}-dev.${{ secrets.APPS_DOMAIN }}"
-          
-          # Create a valid helm release name
+          # Create a valid helm release name and route host (lowercase)
           HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+          ROUTE_HOST="${HELM_RELEASE_NAME}-dev.${{ secrets.APPS_DOMAIN }}"
           
           helm upgrade --install ${HELM_RELEASE_NAME} ./helm \
             --namespace ${{ secrets.OSC_DEV_PROJECT }} \
@@ -112,10 +110,11 @@ jobs:
             --set image.repository=${{ steps.repo_name.outputs.name }} \
             --set image.tag=${{ steps.generate_tag.outputs.version }} \
             --set route.host=${ROUTE_HOST}
-
+              
       - name: Wait for Deployment
         run: |
-          oc rollout status deployment/${{ github.event.repository.name }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=180s
+          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+          oc rollout status deployment/${HELM_RELEASE_NAME} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=180s
 
       - name: Run E2E Tests
         run: |
