@@ -1,0 +1,38 @@
+name: 🧪 PR Validation
+
+on:
+  pull_request:
+    branches: [ development, main ]
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Code Linting
+        run: |
+          echo "TODO: Add linting steps (e.g., checkstyle, PMD, SpotBugs)"
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Grant execute permission for mvnw
+        run: chmod +x mvnw
+          
+          
+      - name: Build
+        run: ./mvnw clean compile
+          
+      - name: Testing
+        run: |
+          echo "TODO: Add tests"
+
+      - name: Security Scans
+        run: |
+          echo "TODO: Add security scans (e.g., OWASP Dependency Check)"
