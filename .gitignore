@@ -11,6 +11,7 @@ release.properties
 .classpath
 .settings/
 bin/
+?/
 
 # IntelliJ
 .idea
@@ -43,3 +44,5 @@ nb-configuration.xml
 /.quarkus/cli/plugins/
 # TLS Certificates
 .certs/
+
+.?/

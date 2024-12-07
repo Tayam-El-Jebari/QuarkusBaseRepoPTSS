@@ -1,5 +1,25 @@
-*
+# Ignore target directory except specific files for prod build
+target/*
 !target/*-runner
 !target/*-runner.jar
 !target/lib/*
 !target/quarkus-app/*
+
+# Ignore IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# Ignore git directory
+.git/
+
+# Don't ignore these necessary files
+!pom.xml
+!src/
+!.mvn/
+!mvnw
+!mvnw.cmd
