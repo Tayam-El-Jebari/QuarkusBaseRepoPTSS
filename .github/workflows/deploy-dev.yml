@@ -32,11 +32,16 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+    
+      - name: Set Repository Name
+        id: repo_name
+        run: |
+          echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
       
       - name: Build and Push Docker Image
         run: |
-          docker build -t ghcr.io/${{ github.repository }}:${{ steps.generate_tag.outputs.version }} .
-          docker push ghcr.io/${{ github.repository }}:${{ steps.generate_tag.outputs.version }}
+          docker build -t ghcr.io/${{ steps.repo_name.outputs.name }}:${{ steps.generate_tag.outputs.version }} .
+          docker push ghcr.io/${{ steps.repo_name.outputs.name }}:${{ steps.generate_tag.outputs.version }}
       
       - name: Install OpenShift CLI
         run: |
