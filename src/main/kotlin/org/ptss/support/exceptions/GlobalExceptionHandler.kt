@@ -5,6 +5,7 @@ import io.smallrye.faulttolerance.api.RateLimitException
 import jakarta.inject.Inject
 import jakarta.validation.ConstraintViolationException
 import jakarta.ws.rs.ForbiddenException
+import jakarta.ws.rs.NotFoundException
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -39,6 +40,16 @@ class GlobalExceptionHandler @Inject constructor(
                 Log.error("Client error occurred for request $requestId: $message")
                 createResponse(
                     errorCode = ErrorCode.INTERNAL_ERROR,
+                    message = message,
+                    requestId = requestId
+                )
+            }
+
+            is NotFoundException -> {
+                val message = exception.message ?: "Resource not found: ${exception.response.status}"
+                Log.error("Resource not found: $requestId: $message")
+                createResponse(
+                    errorCode = ErrorCode.NOT_FOUND,
                     message = message,
                     requestId = requestId
                 )
