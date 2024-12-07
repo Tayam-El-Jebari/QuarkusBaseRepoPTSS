@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Set Repository Name
+        id: repo_name
+        run: |
+          echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
       
       - name: Code Linting
         run: |
@@ -25,8 +30,8 @@ jobs:
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
           
-      - name: Build
-        run: ./mvnw clean compile
+      - name: Build with Maven
+        run: ./mvnw clean package -DskipTests
           
       - name: Testing
         run: |
@@ -35,3 +40,10 @@ jobs:
       - name: Security Scans
         run: |
           echo "TODO: Add security scans (e.g., OWASP Dependency Check)"
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.repo_name.outputs.name }}-build
+          path: target/quarkus-app/
+          retention-days: 1

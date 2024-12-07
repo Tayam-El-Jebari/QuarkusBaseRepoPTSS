@@ -16,6 +16,36 @@ jobs:
     environment: development
     steps:
       - uses: actions/checkout@v3
+
+      - name: Set Repository Name
+        id: repo_name
+        run: |
+          # For Docker image
+          echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+          # For artifact name
+          echo "artifact_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
+    
+      - name: Download Build Artifact
+        id: download
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ steps.repo_name.outputs.artifact_name }}-build
+          path: target/quarkus-app/
+        continue-on-error: true  # Continue if no artifact exists
+
+      - name: Set up JDK if no artifact exists
+        if: steps.download.outcome == 'failure'
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build if no artifact exists
+        if: steps.download.outcome == 'failure'
+        run: |
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
       
       - name: Generate Version Tag
         id: generate_tag
@@ -32,11 +62,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-    
-      - name: Set Repository Name
-        id: repo_name
-        run: |
-          echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
       
       - name: Build and Push Docker Image
         run: |
@@ -56,7 +81,7 @@ jobs:
           
           # Create/update deployment
           oc set image deployment/${{ github.event.repository.name }} \
-            ${{ github.event.repository.name }}=ghcr.io/${{ github.repository }}:${{ steps.generate_tag.outputs.version }}
+            ${{ github.event.repository.name }}=ghcr.io/${{ steps.repo_name.outputs.name }}:${{ steps.generate_tag.outputs.version }}
           
           # Rollout and wait for deployment
           oc rollout status deployment/${{ github.event.repository.name }} --timeout=180s
