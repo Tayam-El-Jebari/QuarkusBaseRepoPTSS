@@ -10,7 +10,6 @@ import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.ext.ExceptionMapper
 import jakarta.ws.rs.ext.Provider
-import org.eclipse.microprofile.faulttolerance.exceptions.BulkheadException
 import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenException
 import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException
 import org.jboss.resteasy.reactive.ClientWebApplicationException

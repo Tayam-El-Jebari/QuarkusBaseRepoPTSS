@@ -1,7 +1,6 @@
 package org.ptss.support.exceptions
 
 import org.eclipse.microprofile.openapi.annotations.media.Schema
-import java.time.Instant
 
 @Schema(description = "Error response structure")
 data class ServiceError(
