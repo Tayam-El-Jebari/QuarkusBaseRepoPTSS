@@ -93,6 +93,12 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-health</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.gitlab.arturbosch.detekt</groupId>
+            <artifactId>detekt-cli</artifactId>
+            <version>1.23.7</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
     <build>
