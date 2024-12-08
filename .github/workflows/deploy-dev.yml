@@ -12,7 +12,6 @@ on:
 
 jobs:
   deploy-dev:
-    if: github.ref == 'refs/heads/development'
     runs-on: ubuntu-latest
     permissions:
       contents: read
