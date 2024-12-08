@@ -4,6 +4,8 @@ import com.azure.data.tables.TableClient
 import com.azure.data.tables.TableServiceClientBuilder
 import jakarta.annotation.PostConstruct
 import jakarta.enterprise.context.ApplicationScoped
+import org.ptss.support.common.exceptions.APIException
+import org.ptss.support.domain.enums.ErrorCode
 import org.ptss.support.domain.models.Product
 import org.ptss.support.domain.interfaces.repositories.IProductRepository
 import org.ptss.support.infrastructure.config.AzureStorageConfig
@@ -19,14 +21,20 @@ class ProductRepository(
 
     @PostConstruct
     fun initialize() {
-        val tableServiceClient = TableServiceClientBuilder()
-            .connectionString(azureConfig.connectionString())
-            .buildClient()
+        try {
+            val tableServiceClient = TableServiceClientBuilder()
+                .connectionString(azureConfig.connectionString())
+                .buildClient()
 
-        tableServiceClient.createTableIfNotExists(azureConfig.tableName())
-        tableClient = tableServiceClient.getTableClient(azureConfig.tableName())
-
-        tableClient = tableServiceClient.getTableClient(azureConfig.tableName())
+            tableServiceClient.createTableIfNotExists(azureConfig.tableName())
+            tableClient = tableServiceClient.getTableClient(azureConfig.tableName())
+        } catch (e: Exception) {
+            logger.error("Failed to initialize Azure Table Storage", e)
+            throw APIException(
+                errorCode = ErrorCode.SERVICE_UNAVAILABLE,
+                message = "Failed to initialize storage service",
+            )
+        }
     }
 
     override fun create(product: Product): String {
