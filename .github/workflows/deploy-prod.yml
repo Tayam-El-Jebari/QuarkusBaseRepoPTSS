@@ -23,6 +23,7 @@ jobs:
         id: repo_name
         run: |
           echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+          echo "artifact_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
@@ -30,7 +31,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Get Image Tag
         id: get_tag
         run: |
@@ -54,49 +55,48 @@ jobs:
           fi
           
           echo "✅ Image verification successful"
-      
-      - name: Install OpenShift CLI
-        run: |
-          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
-          tar -xvf openshift-client-linux.tar.gz -C /usr/local/bin
-          chmod +x /usr/local/bin/oc
-        
-      - name: Install Helm
-        uses: azure/setup-helm@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
-          version: v3.12.0
-        
-      - name: Login to OpenShift
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Set Application Variables
         run: |
-          oc login --token=${{ secrets.OSC_TOKEN }} --server=${{ secrets.OSC_SERVER }}
-      
-      - name: Deploy to OpenShift Prod
+          RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+          echo "ROUTE_HOST=${RELEASE_NAME}.${{ secrets.APPS_DOMAIN }}" >> $GITHUB_ENV
+          echo "APP_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
+
+      - name: Deploy to OpenShift
         run: |
-          # Create a valid helm release name and route host (lowercase)
-          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
-          ROUTE_HOST="${HELM_RELEASE_NAME}.${{ secrets.APPS_DOMAIN }}"
-          
-          helm upgrade --install ${HELM_RELEASE_NAME} ./helm \
-            --namespace ${{ secrets.OSC_PROD_PROJECT }} \
-            --values ./helm/values.yaml \
-            --values ./helm/values-prod.yaml \
-            --set image.registry=ghcr.io \
-            --set image.repository=${{ steps.repo_name.outputs.name }} \
-            --set image.tag=${{ steps.get_tag.outputs.tag }} \
-            --set route.host=${ROUTE_HOST}
-            
-      - name: Wait for Deployment
-        run: |
-          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
-          oc rollout status deployment/${HELM_RELEASE_NAME} -n ${{ secrets.OSC_PROD_PROJECT }} --timeout=300s
+          ./mvnw quarkus:deploy \
+            -Dquarkus.kubernetes-client.master-url=${{ secrets.OSC_SERVER }} \
+            -Dquarkus.kubernetes-client.token=${{ secrets.OSC_TOKEN }} \
+            -Dquarkus.container-image.registry=ghcr.io \
+            -Dquarkus.container-image.group=${{ github.repository }} \
+            -Dquarkus.container-image.name=${{ env.APP_NAME }} \
+            -Dquarkus.container-image.tag=${{ steps.get_tag.outputs.tag }} \
+            -Dquarkus.openshift.route.host=${{ env.ROUTE_HOST }} \
+            -Dquarkus.openshift.deployment.namespace=${{ secrets.OSC_PROD_PROJECT }} \
+            -Dquarkus.openshift.env.configmaps=${{ env.APP_NAME }}-config \
+            -Dquarkus.kubernetes.deploy-wait=true \
+            -Dquarkus.container-image.build=false \
+            -Dquarkus.kubernetes.deploy=true \
+            -Dquarkus.profile=prod
 
       - name: Verify Deployment
         run: |
-          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+          # Check if deployment exists
+          if ! oc get deployment ${APP_NAME} -n ${{ secrets.OSC_PROD_PROJECT }} &>/dev/null; then
+            echo "❌ Deployment ${APP_NAME} not found"
+            exit 1
+          fi
           
           # Check if all pods are ready
-          READY_PODS=$(oc get deployment ${HELM_RELEASE_NAME} -n ${{ secrets.OSC_PROD_PROJECT }} -o jsonpath='{.status.readyReplicas}')
-          DESIRED_PODS=$(oc get deployment ${HELM_RELEASE_NAME} -n ${{ secrets.OSC_PROD_PROJECT }} -o jsonpath='{.spec.replicas}')
+          READY_PODS=$(oc get deployment ${APP_NAME} -n ${{ secrets.OSC_PROD_PROJECT }} -o jsonpath='{.status.readyReplicas}')
+          DESIRED_PODS=$(oc get deployment ${APP_NAME} -n ${{ secrets.OSC_PROD_PROJECT }} -o jsonpath='{.spec.replicas}')
           
           if [ "$READY_PODS" != "$DESIRED_PODS" ]; then
             echo "❌ Deployment verification failed: $READY_PODS/$DESIRED_PODS pods ready"

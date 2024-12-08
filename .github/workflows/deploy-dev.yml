@@ -49,21 +49,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install OpenShift CLI
-        run: |
-          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
-          tar -xvf openshift-client-linux.tar.gz -C /usr/local/bin
-          chmod +x /usr/local/bin/oc
-
-      - name: Login to OpenShift
-        run: |
-          oc login --token=${{ secrets.OSC_TOKEN }} --server=${{ secrets.OSC_SERVER }}
-
       - name: Set Application Variables
         run: |
-          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
-          echo "ROUTE_HOST=${HELM_RELEASE_NAME}-dev.${{ secrets.APPS_DOMAIN }}" >> $GITHUB_ENV
-          echo "APP_NAME=${HELM_RELEASE_NAME}" >> $GITHUB_ENV
+          RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+          echo "ROUTE_HOST=${RELEASE_NAME}-dev.${{ secrets.APPS_DOMAIN }}" >> $GITHUB_ENV
+          echo "APP_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
 
       - name: Build and Deploy with Quarkus OpenShift
         run: |
@@ -86,10 +76,7 @@ jobs:
             -Dquarkus.profile=dev \
             -Dquarkus.kubernetes-client.master-url=${{ secrets.OSC_SERVER }} \
             -Dquarkus.kubernetes-client.token=${{ secrets.OSC_TOKEN }}
-
-      - name: Wait for Deployment
-        run: |
-          oc rollout status deployment/${APP_NAME} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=180s
+            -Dquarkus.kubernetes.deploy-wait=true
 
       - name: Run E2E Tests
         run: |
