@@ -9,6 +9,7 @@ import jakarta.validation.ConstraintViolationException
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 import jakarta.ws.rs.Produces
+import jakarta.ws.rs.WebApplicationException
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.ext.ExceptionMapper
@@ -129,6 +130,19 @@ class GlobalExceptionHandler @Inject constructor(
                 )
             }
 
+            is WebApplicationException -> {
+                val message = when (val cause = exception.cause) {
+                    is ValueInstantiationException -> getNullFieldFromError(cause)
+                    else -> exception.message ?: "Request processing failed"
+                }
+
+                Log.error("Web application error for request $requestId: $message")
+                createResponse(
+                    errorCode = ErrorCode.VALIDATION_ERROR,
+                    message = message,
+                    requestId = requestId
+                )
+            }
 
             else -> {
                 Log.error("Unhandled exception for request $requestId", exception)
