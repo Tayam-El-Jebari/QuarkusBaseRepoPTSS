@@ -1,7 +1,7 @@
 _id: spc_d35dab035e6a43f3a71023644fde402b
 type: ApiSpec
 parentId: wrk_b113811489604ec4a4ef4a25f0d55783
-modified: 1733430699230
+modified: 1733525492300
 created: 1733344408705
 fileName: Base API
 contents: >-
@@ -85,6 +85,35 @@ contents: >-
             $ref: '#/components/responses/Unauthorized'
           '403':
             $ref: '#/components/responses/Forbidden'
+            
+    /products/{id}:
+      get:
+        tags:
+          - product-service
+        summary: Get product by ID
+        description: Retrieves a specific product by its unique identifier
+        operationId: getProductById
+        parameters:
+          - name: id
+            in: path
+            description: Unique identifier of the product
+            required: true
+            schema:
+              type: string
+              format: uuid
+        responses:
+          '200':
+            description: Product found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Product'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+          '404':
+            $ref: '#/components/responses/NotFound'
 
     /health:
       get:
