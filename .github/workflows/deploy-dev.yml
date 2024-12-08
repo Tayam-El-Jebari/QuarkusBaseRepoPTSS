@@ -55,14 +55,30 @@ jobs:
           echo "ROUTE_HOST=${RELEASE_NAME}-dev.${{ secrets.APPS_DOMAIN }}" >> $GITHUB_ENV
           echo "APP_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
 
-      - name: Build and Deploy with Quarkus OpenShift
-        env:
-          NAMESPACE: ${{ secrets.OSC_DEV_PROJECT }}
+      - name: Install OpenShift CLI
         run: |
+          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+          tar -xvf openshift-client-linux.tar.gz -C /usr/local/bin
+          chmod +x /usr/local/bin/oc
+
+      - name: Login to OpenShift
+        run: |
+          oc login --token=${{ secrets.OSC_TOKEN }} --server=${{ secrets.OSC_SERVER }}
+
+      - name: Build and Deploy with Quarkus OpenShift
+        run: |
+          # First verify OpenShift connection and namespace
+          echo "Verifying OpenShift connection..."
+          oc whoami
+          echo "Current project: $(oc project -q)"
+          echo "Switching to project ${{ secrets.OSC_DEV_PROJECT }}"
+          oc project ${{ secrets.OSC_DEV_PROJECT }}
+
           chmod +x mvnw
           ./mvnw clean package \
-            -Dquarkus.openshift.namespace=${NAMESPACE} \
-            -Dquarkus.kubernetes-client.namespace=${NAMESPACE} \
+            -X \
+            -Dquarkus.openshift.namespace=${{ secrets.OSC_DEV_PROJECT }} \
+            -Dquarkus.kubernetes-client.namespace=${{ secrets.OSC_DEV_PROJECT }} \
             -Dquarkus.container-image.registry=ghcr.io \
             -Dquarkus.container-image.group=${{ github.repository }} \
             -Dquarkus.container-image.name=${{ env.APP_NAME }} \
@@ -71,17 +87,15 @@ jobs:
             -DGITHUB_ACTOR=${{ github.actor }} \
             -DGITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
             -Dquarkus.kubernetes-client.master-url=${{ secrets.OSC_SERVER }} \
-            -Dquarkus.kubernetes-client.token=${{ secrets.OSC_TOKEN }} \
-            -Dquarkus.profile=dev
+            -Dquarkus.kubernetes-client.token=${{ secrets.OSC_TOKEN }}
 
       - name: Deploy to OpenShift
-        env:
-          NAMESPACE: ${{ secrets.OSC_DEV_PROJECT }}
         run: |
+          echo "Current project: $(oc project -q)"
           ./mvnw quarkus:deploy \
-            -Dquarkus.profile=dev \
-            -Dquarkus.openshift.namespace=${NAMESPACE} \
-            -Dquarkus.kubernetes-client.namespace=${NAMESPACE} \
+            -X \
+            -Dquarkus.openshift.namespace=${{ secrets.OSC_DEV_PROJECT }} \
+            -Dquarkus.kubernetes-client.namespace=${{ secrets.OSC_DEV_PROJECT }} \
             -Dquarkus.kubernetes-client.master-url=${{ secrets.OSC_SERVER }} \
             -Dquarkus.kubernetes-client.token=${{ secrets.OSC_TOKEN }}
             -Dquarkus.kubernetes.deploy-wait=true
