@@ -15,16 +15,20 @@ export function setup() {
 
 export default function (data) {
     // 3. VU code
-    group('Base Test Scenarios', () => {
-        group('Test Success Endpoint', () => {
+    group('Health Check Scenarios', () => {
+        group('Readiness Check', () => {
             try {
                 // Make a GET request to the API
-                const res = http.get(data.apiUrl, { headers: data.headers });
+                const res = http.get(`${data.apiUrl}/q/health/ready`, {
+                    headers: data.headers
+                });
 
-                // Check if the response is as expected
+                // Check if the response and body structure is as expected
                 const checkRes = check(res, {
                     'status is 200': (r) => r.status === 200,
-                    'body contains Success': (r) => r.body.includes('Success')
+                    'response is JSON': (r) => r.headers['Content-Type'].includes('application/json'),
+                    'status is UP': (r) => JSON.parse(r.body).status === 'UP',
+                    'checks array exists': (r) => Array.isArray(JSON.parse(r.body).checks)
                 });
 
                 if (!checkRes) {
