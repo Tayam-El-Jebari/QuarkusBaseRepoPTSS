@@ -72,9 +72,7 @@ jobs:
             -Dquarkus.container-image.group=${{ github.repository_owner }} \
             -Dquarkus.container-image.name=${{ env.APP_NAME }} \
             -Dquarkus.container-image.tag=${{ steps.version.outputs.tag }} \
-            -Dquarkus.openshift.route.host=${{ env.ROUTE_HOST }} \
-            -Dquarkus.kubernetes-client.master-url=${{ secrets.OSC_SERVER }} \
-            -Dquarkus.kubernetes-client.token=${{ secrets.OSC_TOKEN }}
+            -Dquarkus.openshift.route.host=${{ env.ROUTE_HOST }}
 
       - name: Deploy to OpenShift
         env:
@@ -87,12 +85,33 @@ jobs:
 
       - name: Verify Deployment
         run: |
-          oc rollout status deployment/${{ env.APP_NAME }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=180s
+          # Wait for deployment to start rolling out
+          sleep 10
+          
+          # Get the deployment name
+          DEPLOYMENT_NAME=${{ env.APP_NAME }}
+          
+          # Watch the deployment status
+          attempt=1
+          max_attempts=30
+          while [ $attempt -le $max_attempts ]; do
+            STATUS=$(oc get deployment $DEPLOYMENT_NAME -n ${{ secrets.OSC_DEV_PROJECT }} -o jsonpath='{.status.conditions[?(@.type=="Available")].status}')
+            if [ "$STATUS" == "True" ]; then
+              echo "Deployment successful!"
+              exit 0
+            fi
+            echo "Attempt $attempt: Waiting for deployment to be ready..."
+            sleep 10
+            attempt=$((attempt + 1))
+          done
+          echo "Deployment did not become ready within timeout"
+          oc get pods -n ${{ secrets.OSC_DEV_PROJECT }} -l app=$DEPLOYMENT_NAME
+          oc describe deployment $DEPLOYMENT_NAME -n ${{ secrets.OSC_DEV_PROJECT }}
+          exit 1
 
       - name: Run E2E Tests
         run: |
           echo "TODO: Add E2E tests using your preferred testing framework"
-          echo "These tests should run against the newly deployed dev environment"
 
       - name: Performance Tests
         run: |
