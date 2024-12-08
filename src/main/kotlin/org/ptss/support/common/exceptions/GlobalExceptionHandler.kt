@@ -18,7 +18,6 @@ import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenExce
 import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException
 import org.jboss.resteasy.reactive.ClientWebApplicationException
 import org.ptss.support.core.context.IRequestContextService
-import org.ptss.support.enums.ErrorCode
 import org.ptss.support.metrics.CustomMetrics
 import org.ptss.support.domain.enums.ErrorCode
 
