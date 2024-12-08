@@ -1,0 +1,30 @@
+FROM registry.access.redhat.com/ubi8/openjdk-17:latest
+
+USER root
+RUN mkdir /app && chown 1001 /app
+
+# Install dos2unix and maven
+RUN microdnf install -y dos2unix maven
+
+# Copy Maven wrapper and pom.xml
+COPY .mvn/ .mvn/ || true  # Won't fail if directory doesn't exist
+COPY mvnw pom.xml ./
+
+# Generate Maven wrapper if it doesn't exist and fix permissions
+RUN if [ ! -f ".mvn/wrapper/maven-wrapper.jar" ]; then \
+        mvn wrapper:wrapper; \
+    fi && \
+    dos2unix mvnw && \
+    chmod +x mvnw && \
+    chown -R 1001:0 /app
+
+USER 1001
+
+# Download dependencies
+RUN ./mvnw dependency:go-offline -B
+
+# Copy source code
+COPY src ./src/
+
+# Run with dev mode enabled
+CMD ["./mvnw", "quarkus:dev", "-Dquarkus.http.host=0.0.0.0"]

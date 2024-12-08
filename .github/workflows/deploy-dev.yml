@@ -1,0 +1,128 @@
+name: 🚀 Deploy to Development
+
+on:
+  push:
+    branches: [ development ]
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      tag:
+        description: 'Image tag (optional)'
+        required: false
+        default: 'latest'
+
+jobs:
+  deploy-dev:
+    if: github.ref == 'refs/heads/development'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    environment: development
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set Repository Name
+        id: repo_name
+        run: |
+          # For Docker image
+          echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+          # For artifact name
+          echo "artifact_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
+
+      - name: Create Build Directory
+        run: mkdir -p build/quarkus-app/
+    
+      - name: Download Build Artifact
+        id: download
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ steps.repo_name.outputs.artifact_name }}-build
+          path: build/quarkus-app/
+        continue-on-error: true  # Continue if no artifact exists
+
+      - name: Set up JDK if no artifact exists
+        if: steps.download.outcome == 'failure'
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build if no artifact exists
+        if: steps.download.outcome == 'failure'
+        run: |
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
+          # Copy to the correct location for Docker
+          mkdir -p build/quarkus-app/
+          cp -r target/quarkus-app/* build/quarkus-app/
+      
+      - name: Generate Version Tag
+        id: generate_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.tag }}" != "latest" ]; then
+            echo "version=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(date +'%Y%m%d')-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify Build Directory
+        run: |
+          echo "Checking build directory contents:"
+          ls -la build/quarkus-app/
+      
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ghcr.io/${{ steps.repo_name.outputs.name }}:${{ steps.generate_tag.outputs.version }} .
+          docker push ghcr.io/${{ steps.repo_name.outputs.name }}:${{ steps.generate_tag.outputs.version }}
+      
+      - name: Install OpenShift CLI
+        run: |
+          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+          tar -xvf openshift-client-linux.tar.gz -C /usr/local/bin
+          chmod +x /usr/local/bin/oc
+        
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.0
+        
+      - name: Login to OpenShift
+        run: |
+          oc login --token=${{ secrets.OSC_TOKEN }} --server=${{ secrets.OSC_SERVER }}
+      
+      - name: Deploy to OpenShift Dev
+        run: |
+          # Create a valid helm release name and route host (lowercase)
+          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+          ROUTE_HOST="${HELM_RELEASE_NAME}-dev.${{ secrets.APPS_DOMAIN }}"
+          
+          helm upgrade --install ${HELM_RELEASE_NAME} ./helm \
+            --namespace ${{ secrets.OSC_DEV_PROJECT }} \
+            --values ./helm/values-dev.yaml \
+            --set image.registry=ghcr.io \
+            --set image.repository=${{ steps.repo_name.outputs.name }} \
+            --set image.tag=${{ steps.generate_tag.outputs.version }} \
+            --set route.host=${ROUTE_HOST}
+              
+      - name: Wait for Deployment
+        run: |
+          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+          oc rollout status deployment/${HELM_RELEASE_NAME} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=180s
+
+      - name: Run E2E Tests
+        run: |
+          echo "TODO: Add E2E tests using your preferred testing framework"
+          echo "These tests should run against the newly deployed dev environment"
+  
+      - name: Performance Tests (Basic)
+        run: |
+          echo "TODO: Add basic k6 performance tests against dev environment"
+          echo "More extensive performance testing will be done in production deployment"
