@@ -23,13 +23,8 @@ class ProductRepository(
             .connectionString(azureConfig.connectionString())
             .buildClient()
 
-        // Create table if it doesn't exist
-        try {
-            tableServiceClient.createTableIfNotExists(azureConfig.tableName())
-        } catch (e: Exception) {
-            logger.error("Error creating table: ${e.message}")
-            throw e
-        }
+        tableServiceClient.createTableIfNotExists(azureConfig.tableName())
+        tableClient = tableServiceClient.getTableClient(azureConfig.tableName())
 
         tableClient = tableServiceClient.getTableClient(azureConfig.tableName())
     }
