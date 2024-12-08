@@ -16,6 +16,7 @@
         <quarkus.platform.version>3.17.0</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.0</surefire-plugin.version>
+        <sonar.host.url>http://localhost:9000</sonar.host.url>
     </properties>
 
     <dependencyManagement>
@@ -188,6 +189,23 @@
                         <option>all-open:annotation=jakarta.persistence.Entity</option>
                         <option>all-open:annotation=io.quarkus.test.junit.QuarkusTest</option>
                     </pluginOptions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>8.0.1</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <format>XML</format>
+                    <outputDirectory>${project.build.directory}/dependency-check-report</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>
