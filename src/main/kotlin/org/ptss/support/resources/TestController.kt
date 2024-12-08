@@ -12,8 +12,8 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses
 import org.eclipse.microprofile.openapi.annotations.tags.Tag
 import org.ptss.support.core.context.IRequestContextService
-import org.ptss.support.enums.ErrorCode
-import org.ptss.support.exceptions.APIException
+import org.ptss.support.domain.enums.ErrorCode
+import org.ptss.support.common.exceptions.APIException
 
 @Path("/api/test")
 @Tag(name = "Test Controller", description = "Endpoints for testing error handling and request context")
