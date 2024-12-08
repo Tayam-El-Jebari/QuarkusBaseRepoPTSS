@@ -1,7 +1,7 @@
 _id: spc_d35dab035e6a43f3a71023644fde402b
 type: ApiSpec
 parentId: wrk_b113811489604ec4a4ef4a25f0d55783
-modified: 1733525492300
+modified: 1733671475143
 created: 1733344408705
 fileName: Base API
 contents: >-
@@ -23,7 +23,7 @@ contents: >-
     - name: product-service
       description: Product management operations
     - name: monitoring
-      description: Health and monitoring endpoints
+      description: SmallRye Health endpoints
 
   paths:
     /products:
@@ -115,26 +115,68 @@ contents: >-
           '404':
             $ref: '#/components/responses/NotFound'
 
-    /health:
+    /q/health:
       get:
         tags:
           - monitoring
-        summary: Check API health status
-        description: Returns the health status of the API and its dependencies
+        summary: Get aggregate health status
+        description: Returns the aggregated health status of the application
         operationId: getHealthStatus
         responses:
           '200':
-            description: System is healthy
+            description: Application is healthy
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/HealthResponse'
+                  $ref: '#/components/schemas/HealthStatus'
           '503':
-            description: System is unhealthy
+            description: Application is not healthy
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/HealthResponse'
+                  $ref: '#/components/schemas/HealthStatus'
+
+    /q/health/live:
+      get:
+        tags:
+          - monitoring
+        summary: Get liveness status
+        description: Returns the liveness health check status
+        operationId: getLivenessStatus
+        responses:
+          '200':
+            description: Application is live
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/HealthStatus'
+          '503':
+            description: Application is not live
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/HealthStatus'
+
+    /q/health/ready:
+      get:
+        tags:
+          - monitoring
+        summary: Get readiness status
+        description: Returns the readiness health check status
+        operationId: getReadinessStatus
+        responses:
+          '200':
+            description: Application is ready
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/HealthStatus'
+          '503':
+            description: Application is not ready
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/HealthStatus'
 
   components:
     schemas:
@@ -209,47 +251,39 @@ contents: >-
             description: Total number of pages based on pageSize
             minimum: 0
 
-      HealthResponse:
+      HealthStatus:
         type: object
         required:
           - status
-          - timestamp
-          - components
+          - checks
         properties:
           status:
             type: string
             enum: [UP, DOWN]
-            description: Overall health status of the system
-          timestamp:
-            type: string
-            format: date-time
-            description: Time when the health check was performed
-          components:
-            type: object
-            description: Health status of individual components
-            additionalProperties:
-              $ref: '#/components/schemas/ComponentHealth'
-          details:
-            type: object
-            description: Additional health check details
-            nullable: true
-
-      ComponentHealth:
+            description: Overall health check status
+          checks:
+            type: array
+            description: List of health check results
+            items:
+              $ref: '#/components/schemas/HealthCheck'
+          
+      HealthCheck:
         type: object
         required:
+          - name
           - status
         properties:
+          name:
+            type: string
+            description: Name of the health check
           status:
             type: string
             enum: [UP, DOWN]
-            description: Status of the component
-          responseTime:
-            type: integer
-            description: Response time in milliseconds
-          details:
+            description: Status of this specific health check
+          data:
             type: object
-            description: Component-specific details
-            nullable: true
+            additionalProperties: true
+            description: Additional health check specific data
 
       Error:
         type: object

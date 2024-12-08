@@ -1,17 +1,17 @@
-_id: req_wrk_b113811489604ec4a4ef4a25f0d557836672a7ef
+_id: req_wrk_b113811489604ec4a4ef4a25f0d557837ac40fcb
 type: Request
 parentId: fld_wrk_b113811489604ec4a4ef4a25f0d55783c1ab9924
-modified: 1733430699170
-created: 1733430699170
-url: "{{ base_url }}/q/health"
-name: Check API health status
+modified: 1733671475104
+created: 1733671475104
+url: "{{ base_url }}/q/health/ready"
+name: Get readiness status
 description: ""
 method: GET
 body: {}
 parameters: []
 headers: []
 authentication: {}
-metaSortKey: -1733430699171
+metaSortKey: -1733671475104
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true
