@@ -2,13 +2,20 @@ FROM registry.access.redhat.com/ubi8/openjdk-17:latest
 
 USER root
 RUN mkdir /app && chown 1001 /app
-USER 1001
 
-WORKDIR /app
+# Install dos2unix to handle any potential line ending issues
+RUN microdnf install -y dos2unix
 
 # Copy Maven wrapper and pom.xml
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
+
+# Fix permissions and line endings
+RUN dos2unix mvnw && \
+    chmod +x mvnw && \
+    chown -R 1001:0 /app
+
+USER 1001
 
 # Download dependencies
 RUN ./mvnw dependency:go-offline -B
