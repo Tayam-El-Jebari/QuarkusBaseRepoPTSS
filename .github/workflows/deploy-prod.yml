@@ -104,3 +104,14 @@ jobs:
           fi
           
           echo "✅ Deployment verification successful: $READY_PODS/$DESIRED_PODS pods ready"
+      
+      - name: Scan Docker Image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: quay.io/my-org/ptss-support:${{ github.sha }}
+
+      - name: Secret Scan with Gitleaks
+        uses: zricethezav/gitleaks-action@v2.1.0
+        with:
+          config-path: .gitleaks.toml
+
