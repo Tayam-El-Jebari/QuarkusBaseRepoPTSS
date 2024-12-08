@@ -17,23 +17,9 @@ jobs:
       contents: read
       packages: write
     environment: development
+
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set Repository Name
-        id: repo_name
-        run: |
-          echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
-          echo "artifact_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
-
-      - name: Generate Version Tag
-        id: generate_tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.tag }}" != "latest" ]; then
-            echo "version=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-          else
-            echo "version=$(date +'%Y%m%d')-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-          fi
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -42,6 +28,21 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Generate Version Tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.tag }}" != "latest" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=$(date +'%Y%m%d')-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set Application Variables
+        run: |
+          RELEASE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '_' '-' | awk -F'/' '{print $2}')
+          echo "ROUTE_HOST=${RELEASE_NAME}-dev.${{ secrets.APPS_DOMAIN }}" >> $GITHUB_ENV
+          echo "APP_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -49,63 +50,50 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set Application Variables
-        run: |
-          RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
-          echo "ROUTE_HOST=${RELEASE_NAME}-dev.${{ secrets.APPS_DOMAIN }}" >> $GITHUB_ENV
-          echo "APP_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
-
       - name: Install OpenShift CLI
-        run: |
-          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
-          tar -xvf openshift-client-linux.tar.gz -C /usr/local/bin
-          chmod +x /usr/local/bin/oc
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: latest
 
       - name: Login to OpenShift
         run: |
           oc login --token=${{ secrets.OSC_TOKEN }} --server=${{ secrets.OSC_SERVER }}
-
-      - name: Build and Deploy with Quarkus OpenShift
-        run: |
-          # First verify OpenShift connection and namespace
-          echo "Verifying OpenShift connection..."
-          oc whoami
-          echo "Current project: $(oc project -q)"
-          echo "Switching to project ${{ secrets.OSC_DEV_PROJECT }}"
           oc project ${{ secrets.OSC_DEV_PROJECT }}
 
+      - name: Build and Deploy
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OSC_DEV_PROJECT: ${{ secrets.OSC_DEV_PROJECT }}
+        run: |
           chmod +x mvnw
-          ./mvnw clean package \
-            -X \
-            -Dquarkus.openshift.namespace=${{ secrets.OSC_DEV_PROJECT }} \
-            -Dquarkus.kubernetes-client.namespace=${{ secrets.OSC_DEV_PROJECT }} \
+          ./mvnw clean package -DskipTests \
             -Dquarkus.container-image.registry=ghcr.io \
-            -Dquarkus.container-image.group=${{ github.repository }} \
+            -Dquarkus.container-image.group=${{ github.repository_owner }} \
             -Dquarkus.container-image.name=${{ env.APP_NAME }} \
-            -Dquarkus.container-image.tag=${{ steps.generate_tag.outputs.version }} \
+            -Dquarkus.container-image.tag=${{ steps.version.outputs.tag }} \
             -Dquarkus.openshift.route.host=${{ env.ROUTE_HOST }} \
-            -DGITHUB_ACTOR=${{ github.actor }} \
-            -DGITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
             -Dquarkus.kubernetes-client.master-url=${{ secrets.OSC_SERVER }} \
             -Dquarkus.kubernetes-client.token=${{ secrets.OSC_TOKEN }}
 
       - name: Deploy to OpenShift
+        env:
+          OSC_DEV_PROJECT: ${{ secrets.OSC_DEV_PROJECT }}
         run: |
-          echo "Current project: $(oc project -q)"
           ./mvnw quarkus:deploy \
-            -X \
-            -Dquarkus.openshift.namespace=${{ secrets.OSC_DEV_PROJECT }} \
-            -Dquarkus.kubernetes-client.namespace=${{ secrets.OSC_DEV_PROJECT }} \
+            -Dquarkus.profile=dev \
             -Dquarkus.kubernetes-client.master-url=${{ secrets.OSC_SERVER }} \
             -Dquarkus.kubernetes-client.token=${{ secrets.OSC_TOKEN }}
-            -Dquarkus.kubernetes.deploy-wait=true
+
+      - name: Verify Deployment
+        run: |
+          oc rollout status deployment/${{ env.APP_NAME }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=180s
 
       - name: Run E2E Tests
         run: |
           echo "TODO: Add E2E tests using your preferred testing framework"
           echo "These tests should run against the newly deployed dev environment"
 
-      - name: Performance Tests (Basic)
+      - name: Performance Tests
         run: |
           echo "TODO: Add basic k6 performance tests against dev environment"
-          echo "More extensive performance testing will be done in production deployment"
