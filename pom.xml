@@ -190,6 +190,21 @@
                     </pluginOptions>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.github.ozsie</groupId>
+                <artifactId>detekt-maven-plugin</artifactId>
+                <version>1.23.7</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                        <configuration>
+                            <config>detekt.yml</config>
+                            <report html="target/detekt-report.html" xml="target/detekt-report.xml" />
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

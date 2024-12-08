@@ -1,0 +1,23 @@
+build:
+  maxIssues: 10
+  weights:
+    complexity: 2
+    style: 1
+    documentation: 1
+
+style:
+  MagicNumber:
+    active: true
+    ignoreNumbers: [-1, 0, 1, 2]
+  MaxLineLength:
+    active: true
+    value: 120
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 20
+
+documentation:
+  CommentOverPrivateFunction:
+    active: true
