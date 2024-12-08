@@ -13,35 +13,8 @@ services:
     volumes:
       - ./:/app
       - ~/.m2:/root/.m2  # Maven cache
-    depends_on:
-      - keycloak
     networks:
       - quarkus-net
-
-  keycloak:
-    image: quay.io/keycloak/keycloak:23.0.0
-    container_name: keycloak
-    env_file: .env
-    command:
-      - start-dev
-    ports:
-      - "8180:8080"
-    depends_on:
-      - keycloak-db
-    networks:
-      - quarkus-net
-
-  keycloak-db:
-    image: postgres:15
-    container_name: keycloak-db
-    env_file: .env
-    volumes:
-      - keycloak-data:/var/lib/postgresql/data
-    networks:
-      - quarkus-net
-
-volumes:
-  keycloak-data:
 
 networks:
   quarkus-net:
