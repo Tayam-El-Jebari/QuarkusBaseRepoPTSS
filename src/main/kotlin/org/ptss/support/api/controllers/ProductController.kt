@@ -9,6 +9,7 @@ import jakarta.ws.rs.POST
 import jakarta.ws.rs.PathParam
 import jakarta.ws.rs.core.MediaType
 import org.ptss.support.api.dtos.requests.CreateProductRequest
+import org.ptss.support.api.dtos.responses.CreateProductResponse
 import org.ptss.support.api.dtos.responses.ProductResponse
 import org.ptss.support.core.facades.ProductFacade
 
@@ -29,6 +30,6 @@ class ProductController(
         productFacade.getProductById(id)
 
     @POST
-    suspend fun createProduct(request: CreateProductRequest): String =
-        productFacade.createProduct(request)
+    suspend fun createProduct(request: CreateProductRequest): CreateProductResponse =
+        CreateProductResponse(productFacade.createProduct(request))
 }
