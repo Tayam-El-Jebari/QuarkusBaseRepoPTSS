@@ -25,7 +25,12 @@ enum class ErrorCode(
     INTERNAL_ERROR("INTERNAL_ERROR", 500, "An unexpected system error occurred"),
     RATE_LIMIT_EXCEEDED("RATE_LIMIT_EXCEEDED", 429, "Too many requests"),
     SERVICE_UNAVAILABLE("SERVICE_UNAVAILABLE", 503, "Service temporarily unavailable"),
-    GATEWAY_TIMEOUT("GATEWAY_TIMEOUT", 504, "Request timed out");
+    GATEWAY_TIMEOUT("GATEWAY_TIMEOUT", 504, "Request timed out"),
+
+    // Product errors
+    PRODUCT_NOT_FOUND("PRODUCT_NOT_FOUND", 404, "The requested product was not found"),
+    PRODUCT_VALIDATION_ERROR("PRODUCT_VALIDATION_ERROR", 400, "Product data validation failed"),
+    PRODUCT_CREATION_ERROR("PRODUCT_CREATION_ERROR", 400, "Failed to create product");
 
     companion object {
         fun fromCode(code: String): ErrorCode? = values().find { it.code == code }

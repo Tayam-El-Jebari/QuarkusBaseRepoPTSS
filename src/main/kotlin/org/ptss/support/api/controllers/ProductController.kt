@@ -12,6 +12,7 @@ import org.ptss.support.api.dtos.requests.CreateProductRequest
 import org.ptss.support.api.dtos.responses.CreateProductResponse
 import org.ptss.support.api.dtos.responses.ProductResponse
 import org.ptss.support.core.facades.ProductFacade
+import org.ptss.support.domain.interfaces.controllers.IProductController
 
 @Path("/products")
 @ApplicationScoped
@@ -19,17 +20,13 @@ import org.ptss.support.core.facades.ProductFacade
 @Consumes(MediaType.APPLICATION_JSON)
 class ProductController(
     private val productFacade: ProductFacade
-) {
-    @GET
-    suspend fun getAllProducts(): List<ProductResponse> =
+) : IProductController {
+    override suspend fun getAllProducts(): List<ProductResponse> =
         productFacade.getAllProducts()
 
-    @GET
-    @Path("/{id}")
-    suspend fun getProductById(@PathParam("id") id: String): ProductResponse? =
+    override suspend fun getProductById(@PathParam("id") id: String): ProductResponse? =
         productFacade.getProductById(id)
 
-    @POST
-    suspend fun createProduct(request: CreateProductRequest): CreateProductResponse =
+    override suspend fun createProduct(request: CreateProductRequest): CreateProductResponse =
         CreateProductResponse(productFacade.createProduct(request))
 }
