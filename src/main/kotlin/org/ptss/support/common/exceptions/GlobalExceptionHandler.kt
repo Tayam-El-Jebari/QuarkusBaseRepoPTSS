@@ -1,5 +1,7 @@
 package org.ptss.support.common.exceptions
 
+import com.fasterxml.jackson.databind.JsonMappingException
+import com.fasterxml.jackson.databind.exc.ValueInstantiationException
 import io.quarkus.logging.Log
 import io.smallrye.faulttolerance.api.RateLimitException
 import jakarta.inject.Inject
@@ -109,6 +111,25 @@ class GlobalExceptionHandler @Inject constructor(
                 )
             }
 
+            is ValueInstantiationException -> {
+                Log.error("Request deserialization error for request $requestId: ${exception.message}")
+                createResponse(
+                    errorCode = ErrorCode.VALIDATION_ERROR,
+                    message = "Invalid request format: ${getNullFieldFromError(exception)}",
+                    requestId = requestId
+                )
+            }
+
+            is JsonMappingException -> {
+                Log.error("JSON mapping error for request $requestId: ${exception.message}")
+                createResponse(
+                    errorCode = ErrorCode.VALIDATION_ERROR,
+                    message = "Invalid request format: ${exception.message}",
+                    requestId = requestId
+                )
+            }
+
+
             else -> {
                 Log.error("Unhandled exception for request $requestId", exception)
                 createResponse(
@@ -136,5 +157,16 @@ class GlobalExceptionHandler @Inject constructor(
         return Response.status(errorCode.status)
             .entity(error)
             .build()
+    }
+
+    private fun getNullFieldFromError(exception: ValueInstantiationException): String {
+        val nullFieldMatch = "parameter (\\w+)".toRegex()
+            .find(exception.message ?: "")?.groupValues?.get(1)
+
+        return if (nullFieldMatch != null) {
+            "Field '$nullFieldMatch' cannot be null"
+        } else {
+            "Required field is missing"
+        }
     }
 }
