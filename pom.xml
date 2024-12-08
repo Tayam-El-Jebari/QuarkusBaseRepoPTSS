@@ -98,6 +98,10 @@
             <artifactId>azure-data-tables</artifactId>
             <version>12.5.0</version>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-jwt</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
