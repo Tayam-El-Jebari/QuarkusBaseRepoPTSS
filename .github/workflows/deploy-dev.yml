@@ -64,16 +64,19 @@ jobs:
             -Dquarkus.container-image.name=${{ env.APP_NAME }} \
             -Dquarkus.container-image.tag=${{ steps.generate_tag.outputs.version }} \
             -Dquarkus.openshift.route.host=${{ env.ROUTE_HOST }} \
-            -Dquarkus.openshift.deployment.namespace=${{ secrets.OSC_DEV_PROJECT }} \
+            -Dquarkus.openshift.namespace=${{ secrets.OSC_DEV_PROJECT }} \
+            -DOPENSHIFT_NAMESPACE=${{ secrets.OSC_DEV_PROJECT }} \
+            -DGITHUB_ACTOR=${{ github.actor }} \
+            -DGITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
             -Dquarkus.kubernetes-client.master-url=${{ secrets.OSC_SERVER }} \
             -Dquarkus.kubernetes-client.token=${{ secrets.OSC_TOKEN }} \
-            -Dquarkus.openshift.env.configmaps=${{ env.APP_NAME }}-config \
             -Dquarkus.profile=dev
 
       - name: Deploy to OpenShift
         run: |
           ./mvnw quarkus:deploy \
             -Dquarkus.profile=dev \
+            -DOPENSHIFT_NAMESPACE=${{ secrets.OSC_DEV_PROJECT }} \
             -Dquarkus.kubernetes-client.master-url=${{ secrets.OSC_SERVER }} \
             -Dquarkus.kubernetes-client.token=${{ secrets.OSC_TOKEN }}
             -Dquarkus.kubernetes.deploy-wait=true
