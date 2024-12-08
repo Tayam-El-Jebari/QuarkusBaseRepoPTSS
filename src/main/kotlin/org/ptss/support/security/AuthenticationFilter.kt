@@ -6,6 +6,7 @@ import jakarta.ws.rs.container.ContainerRequestContext
 import jakarta.ws.rs.container.ContainerRequestFilter
 import jakarta.ws.rs.container.ResourceInfo
 import jakarta.ws.rs.core.Context
+import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.ext.Provider
 
 @Provider
@@ -22,10 +23,15 @@ class AuthenticationFilter(
 
         if (annotation != null) {
             val accessToken = identityServiceClient.getAccessToken()
-            val role = jwtValidator.validateAccessToken(accessToken)
+            val role = jwtValidator.validateAccessToken(accessToken, annotation.roles)
 
             if (role !in annotation.roles) {
-                // Throw appropriate error
+                // Throw appropriate error with the custom message from the annotation
+                requestContext.abortWith(
+                    Response.status(Response.Status.UNAUTHORIZED)
+                        .entity(annotation.message)
+                        .build()
+                )
             }
         }
     }

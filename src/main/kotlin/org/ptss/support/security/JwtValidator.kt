@@ -1,16 +1,13 @@
 package org.ptss.support.security
 
-
-import com.sun.org.apache.xml.internal.security.algorithms.SignatureAlgorithm
 import jakarta.enterprise.context.ApplicationScoped
 import org.ptss.support.domain.enums.Role
-import java.security.Key
 
 @ApplicationScoped
 class JwtValidator {
-    fun validateAccessToken(accessToken: String): Role {
+    fun validateAccessToken(accessToken: String, allowedRoles: Array<Role>): Role {
         // Validate the access token and return the user's role
-        return Role.Patient
+        return if (allowedRoles.contains(Role.Patient)) Role.Patient else Role.Admin
     }
 
     fun validateRefreshToken(refreshToken: String): Role {

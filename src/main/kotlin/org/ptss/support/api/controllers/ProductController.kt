@@ -20,13 +20,14 @@ import org.ptss.support.security.Authentication
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Authentication(roles = [Role.Patient])
 class ProductController(
     private val productFacade: ProductFacade
 ) : IProductController {
     override suspend fun getAllProducts(): List<ProductResponse> =
         productFacade.getAllProducts()
 
-    @Authentication(roles = [Role.Patient])
+    @Authentication(roles = [Role.HCP, Role.Patient, Role.Admin], message = "To get a product, you should be authenticated as an admin or patient")
     override suspend fun getProductById(@PathParam("id") id: String): ProductResponse? =
         productFacade.getProductById(id)
 
