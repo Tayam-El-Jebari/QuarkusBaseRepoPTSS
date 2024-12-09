@@ -103,4 +103,3 @@ jobs:
             exit 1
           fi
           
-          echo "✅ Deployment verification successful: $READY_PODS/$DESIRED_PODS pods ready"
