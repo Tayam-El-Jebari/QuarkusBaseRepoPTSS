@@ -1,14 +1,10 @@
 name: Initialize New Repository
 on:
-  push:
-    branches:
-      - development
   workflow_dispatch:
 
 jobs:
   setup-repository:
     runs-on: ubuntu-latest
-    if: github.event.repository.created
     steps:
       - uses: actions/checkout@v4
 
