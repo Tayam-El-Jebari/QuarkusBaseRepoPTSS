@@ -14,4 +14,9 @@ class IdentityServiceClient {
         // Retrieve refresh token from identity service
         return "valid_refresh_token"
     }
+
+    fun getNewAccessToken(refreshToken: String): String {
+        // Use the refreshToken to retrieve a new valid access token
+        return "new_valid_access_token"
+    }
 }

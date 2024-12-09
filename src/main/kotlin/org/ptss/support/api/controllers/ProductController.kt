@@ -27,7 +27,7 @@ class ProductController(
     override suspend fun getAllProducts(): List<ProductResponse> =
         productFacade.getAllProducts()
 
-    @Authentication(roles = [Role.HCP, Role.Patient, Role.Admin], message = "To get a product, you should be authenticated as an admin or patient")
+    @Authentication(roles = [Role.Patient, Role.Admin], message = "To get a product, you should be authenticated as an admin or patient")
     override suspend fun getProductById(@PathParam("id") id: String): ProductResponse? =
         productFacade.getProductById(id)
 

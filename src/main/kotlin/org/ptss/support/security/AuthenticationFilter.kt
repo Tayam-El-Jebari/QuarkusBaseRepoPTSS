@@ -22,17 +22,31 @@ class AuthenticationFilter(
             ?: resourceInfo.resourceClass.getAnnotation(Authentication::class.java)
 
         if (annotation != null) {
-            val accessToken = identityServiceClient.getAccessToken()
-            val role = jwtValidator.validateAccessToken(accessToken, annotation.roles)
+            val accessToken = requestContext.getHeaderString("Authorization")
+            val refreshToken = requestContext.getCookies()["refresh_token"]?.value
 
-            if (role !in annotation.roles) {
-                // Throw appropriate error with the custom message from the annotation
-                requestContext.abortWith(
-                    Response.status(Response.Status.UNAUTHORIZED)
-                        .entity(annotation.message)
-                        .build()
-                )
+            if (accessToken != null && refreshToken != null) {
+                val accessTokenRole = jwtValidator.validateAccessToken(accessToken, annotation.roles)
+                val refreshTokenRole = jwtValidator.validateRefreshToken(refreshToken)
+
+                if (accessTokenRole in annotation.roles) {
+                    // Access token is valid, allow request to proceed
+                    return
+                } else if (refreshTokenRole in annotation.roles) {
+                    // Access token is invalid, but refresh token is valid
+                    // Get a new access token from the IdentityServiceClient
+                    val newAccessToken = identityServiceClient.getNewAccessToken(refreshToken)
+                    requestContext.headers.putSingle("Authorization", newAccessToken)
+                    return
+                }
             }
+
+            // Both access token and refresh token are invalid
+            requestContext.abortWith(
+                Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(annotation.message)
+                    .build()
+            )
         }
     }
 }
