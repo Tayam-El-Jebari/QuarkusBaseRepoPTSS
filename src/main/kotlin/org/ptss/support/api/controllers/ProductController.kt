@@ -20,7 +20,7 @@ import org.ptss.support.security.Authentication
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Authentication(roles = [Role.Admin])
+@Authentication(roles = [Role.ADMIN])
 class ProductController(
     private val productFacade: ProductFacade
 ) : IProductController {
@@ -28,7 +28,7 @@ class ProductController(
     override suspend fun getAllProducts(): List<ProductResponse> =
         productFacade.getAllProducts()
 
-    @Authentication(roles = [Role.Admin], message = "To get a product, you should be authenticated as an admin")
+    @Authentication(roles = [Role.ADMIN], message = "To get a product, you should be authenticated as an admin")
     override suspend fun getProductById(@PathParam("id") id: String): ProductResponse? =
         productFacade.getProductById(id)
 

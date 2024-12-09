@@ -1,5 +1,5 @@
 package org.ptss.support.domain.enums
 
 enum class Role {
-    Admin, Patient, HCP
+    ADMIN, PATIENT, HCP, FAMILY_MEMBER, PRIMARY_CAREGIVER
 }

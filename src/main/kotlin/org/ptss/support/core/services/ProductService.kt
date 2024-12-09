@@ -1,8 +1,8 @@
 package org.ptss.support.core.services
 
 import org.ptss.support.domain.commands.CreateProductCommand
-import org.ptss.support.domain.interfaces.cqrs.ICommandHandler
-import org.ptss.support.domain.interfaces.queries.IQueryHandler
+import org.ptss.support.domain.interfaces.commands.ICommandHandler
+import org.ptss.support.domain.interfaces.querries.IQueryHandler
 import org.ptss.support.domain.querries.GetAllProductsQuery
 import org.ptss.support.domain.querries.GetProductByIdQuery
 import org.ptss.support.infrastructure.util.executeWithExceptionLoggingAsync
