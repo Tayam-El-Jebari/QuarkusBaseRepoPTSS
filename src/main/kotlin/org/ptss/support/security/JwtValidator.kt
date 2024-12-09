@@ -1,17 +1,27 @@
 package org.ptss.support.security
 
+import io.quarkus.security.UnauthorizedException
 import jakarta.enterprise.context.ApplicationScoped
 import org.ptss.support.domain.enums.Role
 
 @ApplicationScoped
 class JwtValidator {
     fun validateAccessToken(accessToken: String, allowedRoles: Array<Role>): Role {
-        // Validate the access token and return the user's role
-        return if (allowedRoles.contains(Role.Patient)) Role.Patient else Role.Admin
+        return when (accessToken) {
+            //"patient_token" -> Role.Patient
+            "admin_token" -> Role.Admin
+            //"hcp_token" -> Role.HCP
+            else -> throw UnauthorizedException("Invalid token")
+        }.takeIf { it in allowedRoles }
+            ?: throw UnauthorizedException("Insufficient permissions")
     }
 
     fun validateRefreshToken(refreshToken: String): Role {
-        // Validate the refresh token and return the user's role
-        return Role.Patient
+        return when (refreshToken) {
+            //"patient_refresh_token" -> Role.Patient
+            "admin_refresh_token" -> Role.Admin
+            //"hcp_refresh_token" -> Role.HCP
+            else -> throw UnauthorizedException("Invalid refresh token")
+        }
     }
 }
