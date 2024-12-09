@@ -1,12 +1,14 @@
 name: Initialize New Repository
 on:
-  create:
+  push:
+    branches:
+      - development
   workflow_dispatch:
 
 jobs:
   setup-repository:
     runs-on: ubuntu-latest
-    if: github.event.ref_type != 'branch' && github.event.ref_type != 'tag'
+    if: github.event.repository.created
     steps:
       - uses: actions/checkout@v4
 
