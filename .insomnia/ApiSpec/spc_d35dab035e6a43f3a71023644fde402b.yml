@@ -1,0 +1,338 @@
+_id: spc_d35dab035e6a43f3a71023644fde402b
+type: ApiSpec
+parentId: wrk_b113811489604ec4a4ef4a25f0d55783
+modified: 1733525492300
+created: 1733344408705
+fileName: Base API
+contents: >-
+  openapi: 3.0.0
+
+  servers:
+    - description: SwaggerHub API Auto Mocking
+      url: https://virtserver.swaggerhub.com/652543_1/PTSS-SUPPORT/1.0.2
+  info:
+    description: Base API for the PTSS SUPPORT project
+    version: 1.0.2
+    title: PTSS SUPPORT Base API
+    contact:
+      email: 688208@student.inholland.nl
+    license:
+      name: Apache 2.0
+      url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+  tags:
+    - name: product-service
+      description: Product management operations
+    - name: monitoring
+      description: Health and monitoring endpoints
+
+  paths:
+    /products:
+      get:
+        tags:
+          - product-service
+        summary: Get all products
+        description: Retrieves a paginated list of all products with optional sorting
+        operationId: getAllProducts
+        parameters:
+          - $ref: '#/components/parameters/cursor'
+          - $ref: '#/components/parameters/pageSize'
+          - $ref: '#/components/parameters/sortOrder'
+        responses:
+          '200':
+            description: List of products
+            content:
+              application/json:
+                schema:
+                  type: object
+                  required:
+                    - data
+                    - pagination
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Product'
+                    pagination:
+                      $ref: '#/components/schemas/PaginationResponse'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+      post:
+        tags:
+          - product-service
+        summary: Create a product
+        description: Creates a new product entry with the provided details
+        operationId: createProduct
+        security:
+          - keycloak: ['admin', 'healthcare_professional']
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductCreate'
+        responses:
+          '201':
+            description: Returns the created product
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Product'
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+            
+    /products/{id}:
+      get:
+        tags:
+          - product-service
+        summary: Get product by ID
+        description: Retrieves a specific product by its unique identifier
+        operationId: getProductById
+        parameters:
+          - name: id
+            in: path
+            description: Unique identifier of the product
+            required: true
+            schema:
+              type: string
+              format: uuid
+        responses:
+          '200':
+            description: Product found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Product'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '403':
+            $ref: '#/components/responses/Forbidden'
+          '404':
+            $ref: '#/components/responses/NotFound'
+
+    /health:
+      get:
+        tags:
+          - monitoring
+        summary: Check API health status
+        description: Returns the health status of the API and its dependencies
+        operationId: getHealthStatus
+        responses:
+          '200':
+            description: System is healthy
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/HealthResponse'
+          '503':
+            description: System is unhealthy
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/HealthResponse'
+
+  components:
+    schemas:
+      Product:
+        type: object
+        required:
+          - id
+          - name
+          - description
+        properties:
+          id:
+            type: string
+            format: uuid
+          name:
+            type: string
+          description:
+            type: string
+          images:
+            type: array
+            items:
+              type: string
+        example:
+          id: "64250070-7082-4789-9f2e-a04036b0ade7"
+          name: "Daniëlla Tol"
+          description: "GYATT"
+          images:
+            - "https://media.licdn.com/dms/image/v2/C5603AQH2SgpZRPrCkg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1541677277591?e=1738800000&v=beta&t=IUNfWsH2UBLy0DhptEvUcYEBcAeO5YvRfFZPVTog0tI"
+
+      ProductCreate:
+        type: object
+        required:
+          - name
+          - description
+        properties:
+          name:
+            type: string
+          description:
+            type: string
+          images:
+            type: array
+            items:
+              type: string
+        example:
+          name: "Daniëlla Tol"
+          description: "GYATT"
+          images:
+            - "https://media.licdn.com/dms/image/v2/C5603AQH2SgpZRPrCkg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1541677277591?e=1738800000&v=beta&t=IUNfWsH2UBLy0DhptEvUcYEBcAeO5YvRfFZPVTog0tI"
+
+      PaginationResponse:
+        type: object
+        required:
+          - nextCursor
+          - pageSize
+          - totalItems
+          - totalPages
+        properties:
+          nextCursor:
+            type: string
+            description: Cursor for the next page of results. Null if no more results.
+            nullable: true
+          pageSize:
+            type: integer
+            description: Number of items in the current page
+            minimum: 1
+            maximum: 50
+          totalItems:
+            type: integer
+            description: Total number of items across all pages
+            minimum: 0
+          totalPages:
+            type: integer
+            description: Total number of pages based on pageSize
+            minimum: 0
+
+      HealthResponse:
+        type: object
+        required:
+          - status
+          - timestamp
+          - components
+        properties:
+          status:
+            type: string
+            enum: [UP, DOWN]
+            description: Overall health status of the system
+          timestamp:
+            type: string
+            format: date-time
+            description: Time when the health check was performed
+          components:
+            type: object
+            description: Health status of individual components
+            additionalProperties:
+              $ref: '#/components/schemas/ComponentHealth'
+          details:
+            type: object
+            description: Additional health check details
+            nullable: true
+
+      ComponentHealth:
+        type: object
+        required:
+          - status
+        properties:
+          status:
+            type: string
+            enum: [UP, DOWN]
+            description: Status of the component
+          responseTime:
+            type: integer
+            description: Response time in milliseconds
+          details:
+            type: object
+            description: Component-specific details
+            nullable: true
+
+      Error:
+        type: object
+        required:
+          - code
+          - message
+        properties:
+          code:
+            type: string
+            description: Error code
+          message:
+            type: string
+            description: Error message
+          details:
+            type: object
+            nullable: true
+            description: Additional error details if available
+
+    responses:
+      BadRequest:
+        description: Invalid request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+
+      Unauthorized:
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+
+      Forbidden:
+        description: Forbidden - Requires other roles
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+
+      NotFound:
+        description: Resource not found
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+
+    parameters:
+      cursor:
+        name: cursor
+        in: query
+        schema:
+          type: string
+          description: Cursor for pagination. Omit for first page.
+      pageSize:
+        name: size
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+          description: Number of items per page
+      sortOrder:
+        name: sortOrder
+        in: query
+        schema:
+          type: string
+          enum: [asc, desc]
+          default: desc
+          description: Sort order by creation time
+
+    securitySchemes:
+      keycloak:
+        type: oauth2
+        description: Keycloak Authentication
+        flows:
+          implicit:
+            authorizationUrl: https://your-keycloak-server/auth/realms/your-realm/protocol/openid-connect/auth
+            scopes:
+              admin: Administrator access
+              healthcare_professional: Healthcare professional access
+              patient: Patient access
+              primary_caregiver: Primary caregiver access
+              family_member: Family member access
+contentType: yaml

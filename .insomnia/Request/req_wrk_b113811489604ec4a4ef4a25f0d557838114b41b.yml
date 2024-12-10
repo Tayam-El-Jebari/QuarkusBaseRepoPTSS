@@ -1,0 +1,30 @@
+_id: req_wrk_b113811489604ec4a4ef4a25f0d557838114b41b
+type: Request
+parentId: fld_wrk_b113811489604ec4a4ef4a25f0d557838964bb97
+modified: 1733430699184
+created: 1733430699184
+url: "{{ base_url }}/products"
+name: Get all products
+description: ""
+method: GET
+body: {}
+parameters:
+  - name: cursor
+    disabled: true
+    value: string
+  - name: size
+    disabled: true
+    value: "20"
+  - name: sortOrder
+    disabled: true
+    value: desc
+headers: []
+authentication: {}
+metaSortKey: -1733430699184
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global

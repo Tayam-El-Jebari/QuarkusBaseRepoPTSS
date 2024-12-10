@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: quarkus-app
+    ports:
+      - "8080:8080"
+      - "5005:5005"  # Debug port
+    env_file: .env
+    volumes:
+      - ./:/app
+      - ~/.m2:/root/.m2  # Maven cache
+    networks:
+      - quarkus-net
+
+networks:
+  quarkus-net:
+    driver: bridge
