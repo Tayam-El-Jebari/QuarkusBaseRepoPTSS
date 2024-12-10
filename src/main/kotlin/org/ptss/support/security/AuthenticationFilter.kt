@@ -32,20 +32,25 @@ class AuthenticationFilter @Inject constructor(
         val accessToken = requestContext.cookies[accessTokenCookieName]?.value
         val refreshToken = requestContext.cookies[refreshTokenCookieName]?.value
 
-        if (!jwtValidator.isTokenValidAndNotBlank(refreshToken)) {
+        // Deny if refresh token is missing or invalid
+        if (refreshToken.isNullOrBlank() || !jwtValidator.isTokenValidAndNotBlank(refreshToken)) {
             denyRequest(requestContext, annotation.message)
         }
 
+        // If access token is valid, use it; otherwise, attempt to refresh
         val tokenToUse = when {
             jwtValidator.isTokenValidAndNotBlank(accessToken) -> accessToken!!
-            else -> tryRefreshAccessToken(requestContext, refreshToken!!)
+            refreshToken.isNullOrBlank() -> {
+                denyRequest(requestContext, "Missing refresh token")
+                return
+            }
+            else -> tryRefreshAccessToken(requestContext, refreshToken)
         }
 
+        // Check if the token has the required role
         if (!jwtValidator.hasRequiredRole(tokenToUse, annotation.roles.toSet())) {
             denyRequest(requestContext, annotation.message)
         }
-
-        return
     }
 
     private fun tryRefreshAccessToken(
