@@ -1,7 +1,7 @@
 package org.ptss.support.infrastructure.handlers.queries.product
 
-import org.ptss.support.domain.interfaces.querries.IQueryHandler
-import org.ptss.support.domain.querries.GetProductByIdQuery
+import org.ptss.support.domain.interfaces.queries.IQueryHandler
+import org.ptss.support.domain.queries.GetProductByIdQuery
 import org.ptss.support.infrastructure.repositories.ProductRepository
 import org.ptss.support.infrastructure.util.executeWithExceptionLoggingAsync
 import jakarta.enterprise.context.ApplicationScoped

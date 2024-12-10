@@ -4,42 +4,30 @@ import io.quarkus.security.UnauthorizedException
 import io.smallrye.jwt.auth.principal.JWTParser
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import org.ptss.support.core.mappers.RoleMapper
 import org.ptss.support.domain.enums.Role
 
 @ApplicationScoped
 class JwtValidator @Inject constructor(
     private val jwtParser: JWTParser
 ) {
+    fun isAccessTokenValid(accessToken: String, allowedRoles: Array<Role>): Boolean =
+        runCatching {
+            validateToken(accessToken)
+            val tokenRole = extractRoleFromToken(accessToken)
+            tokenRole in allowedRoles
+        }.getOrElse { false }
 
-    fun validateAccessToken(accessToken: String, allowedRoles: Array<Role>): Role {
-        return try {
-            val claims = jwtParser.parse(accessToken)
-            val tokenRole = mapClaimToRole(claims.getClaim("role") as String?)
-
-            tokenRole.takeIf { it in allowedRoles }
-                ?: throw UnauthorizedException("Insufficient permissions")
-        } catch (e: Exception) {
-            throw UnauthorizedException("Invalid access token")
-        }
+    fun extractRoleFromToken(token: String): Role {
+        val roleClaim = extractClaim(token, "role") as String?
+        return RoleMapper.mapClaimToRole(roleClaim)
     }
 
-    fun validateRefreshToken(refreshToken: String): Role {
-        return try {
-            val claims = jwtParser.parse(refreshToken)
-            mapClaimToRole(claims.getClaim("role") as String?)
-        } catch (e: Exception) {
-            throw UnauthorizedException("Invalid refresh token")
-        }
+    fun validateToken(token: String) {
+        runCatching { jwtParser.parse(token) }
+            .getOrElse { throw UnauthorizedException("Invalid token") }
     }
 
-    private fun mapClaimToRole(roleClaim: String?): Role {
-        return when (roleClaim?.uppercase()) {
-            "ADMIN" -> Role.ADMIN
-            "PATIENT" -> Role.PATIENT
-            "HCP" -> Role.HCP
-            "FAMILY_MEMBER" -> Role.FAMILY_MEMBER
-            "PRIMARY_CAREGIVER" -> Role.PRIMARY_CAREGIVER
-            else -> throw UnauthorizedException("Invalid role in token")
-        }
-    }
+    fun extractClaim(token: String, claimName: String): Any? =
+        jwtParser.parse(token).getClaim(claimName)
 }
