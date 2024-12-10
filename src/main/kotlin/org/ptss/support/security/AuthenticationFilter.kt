@@ -14,6 +14,7 @@ import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.ext.Provider
 import org.eclipse.microprofile.config.inject.ConfigProperty
 
+
 @Provider
 @ApplicationScoped
 class AuthenticationFilter @Inject constructor(
@@ -31,26 +32,33 @@ class AuthenticationFilter @Inject constructor(
         val accessToken = requestContext.cookies[accessTokenCookieName]?.value
         val refreshToken = requestContext.cookies[refreshTokenCookieName]?.value
 
-        when {
-            accessToken.isNullOrBlank() -> denyRequest(requestContext, annotation.message)
-            jwtValidator.isAccessTokenValid(accessToken, annotation.roles) -> return
-            !refreshToken.isNullOrBlank() -> handleRefreshToken(requestContext, refreshToken, annotation)
-            else -> denyRequest(requestContext, annotation.message)
-        }
-    }
-
-    private fun handleRefreshToken(
-        requestContext: ContainerRequestContext,
-        refreshToken: String,
-        annotation: Authentication
-    ) {
-        runCatching {
-            val newAccessToken = identityServiceClient.getNewAccessToken(refreshToken)
-            val newAccessTokenCookie = createNewAccessTokenCookie(newAccessToken)
-            requestContext.headers.add(HttpHeaders.SET_COOKIE, newAccessTokenCookie.toString())
-        }.getOrElse {
+        if (!jwtValidator.isTokenValidAndNotBlank(refreshToken)) {
             denyRequest(requestContext, annotation.message)
         }
+
+        val tokenToUse = when {
+            jwtValidator.isTokenValidAndNotBlank(accessToken) -> accessToken!!
+            else -> tryRefreshAccessToken(requestContext, refreshToken!!)
+        }
+
+        if (!jwtValidator.hasRequiredRole(tokenToUse, annotation.roles.toSet())) {
+            denyRequest(requestContext, annotation.message)
+        }
+
+        return
+    }
+
+    private fun tryRefreshAccessToken(
+        requestContext: ContainerRequestContext,
+        refreshToken: String
+    ): String = runCatching {
+        val newToken = identityServiceClient.refreshAccessToken(refreshToken)
+        val newAccessTokenCookie = createNewAccessTokenCookie(newToken)
+        requestContext.headers.add(HttpHeaders.SET_COOKIE, newAccessTokenCookie.toString())
+        newToken
+    }.getOrElse {
+        denyRequest(requestContext, "Unauthorized")
+        throw UnauthorizedException("Failed to refresh token")
     }
 
     private fun createNewAccessTokenCookie(newAccessToken: String): NewCookie =
@@ -61,10 +69,6 @@ class AuthenticationFilter @Inject constructor(
             .secure(true)
             .build()
 
-    private fun getAuthenticationAnnotation(resourceInfo: ResourceInfo): Authentication? =
-        resourceInfo.resourceMethod.getAnnotation(Authentication::class.java)
-            ?: resourceInfo.resourceClass.getAnnotation(Authentication::class.java)
-
     private fun denyRequest(requestContext: ContainerRequestContext, message: String) {
         requestContext.abortWith(
             Response.status(Response.Status.UNAUTHORIZED)
@@ -72,4 +76,10 @@ class AuthenticationFilter @Inject constructor(
                 .build()
         )
     }
+
+    private fun getAuthenticationAnnotation(resourceInfo: ResourceInfo): Authentication? =
+        resourceInfo.resourceMethod.getAnnotation(Authentication::class.java)
+            ?: resourceInfo.resourceClass.getAnnotation(Authentication::class.java)
+
 }
+

@@ -1,33 +1,31 @@
 package org.ptss.support.security
 
 import io.quarkus.security.UnauthorizedException
-import io.smallrye.jwt.auth.principal.JWTParser
 import io.smallrye.jwt.build.Jwt
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
-import org.ptss.support.core.mappers.RoleMapper
 import org.ptss.support.domain.contants.TokenExpiration
 import org.ptss.support.domain.enums.Role
 import java.util.Date
 
 @ApplicationScoped
 class IdentityServiceClient @Inject constructor(
-    private val jwtParser: JWTParser
+    private val jwtValidator: JwtValidator
 ) {
-    fun getAccessToken(role: Role = Role.PATIENT): String =
-        generateJwt(role, isRefreshToken = false)
+    fun refreshAccessToken(refreshToken: String): String {
+        val newToken = getNewAccessToken(refreshToken)
+        if (!jwtValidator.isTokenValidAndNotBlank(newToken)) {
+            throw UnauthorizedException("Failed to obtain valid access token")
+        }
+        return newToken
+    }
 
-    fun getRefreshToken(role: Role = Role.PATIENT): String =
-        generateJwt(role, isRefreshToken = true)
-
-    fun getNewAccessToken(refreshToken: String): String {
-        val claims = runCatching { jwtParser.parse(refreshToken) }
+    private fun getNewAccessToken(refreshToken: String): String {
+        val roleClaim = runCatching { jwtValidator.extractClaim(refreshToken, "role") as String }
             .getOrElse { throw UnauthorizedException("Invalid refresh token") }
 
-        val roleClaim = claims.getClaim("role") as String?
-        val role = RoleMapper.mapClaimToRole(roleClaim)
-
-        return getAccessToken(role)
+        val role = Role.fromString(roleClaim)
+        return generateJwt(role, isRefreshToken = false)
     }
 
     private fun generateJwt(role: Role, isRefreshToken: Boolean): String {
@@ -48,3 +46,4 @@ class IdentityServiceClient @Inject constructor(
             .sign()
     }
 }
+
