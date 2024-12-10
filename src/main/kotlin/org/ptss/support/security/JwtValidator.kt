@@ -22,7 +22,7 @@ class JwtValidator @Inject constructor(
     }
 
     fun extractRoleFromToken(token: String): Role {
-        val roleClaim = extractClaim(token, "role") as String?
+        val roleClaim = extractClaim(token, "role") as String
         return Role.fromString(roleClaim)
     }
 

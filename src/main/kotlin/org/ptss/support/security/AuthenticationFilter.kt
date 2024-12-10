@@ -29,41 +29,39 @@ class AuthenticationFilter @Inject constructor(
 
     override fun filter(requestContext: ContainerRequestContext) {
         val annotation = getAuthenticationAnnotation(resourceInfo) ?: return
+
         val accessToken = requestContext.cookies[accessTokenCookieName]?.value
         val refreshToken = requestContext.cookies[refreshTokenCookieName]?.value
 
-        // Deny if refresh token is missing or invalid
-        if (refreshToken.isNullOrBlank() || !jwtValidator.isTokenValidAndNotBlank(refreshToken)) {
-            denyRequest(requestContext, annotation.message)
+        // Validate refresh token
+        if (!jwtValidator.isTokenValidAndNotBlank(refreshToken)) {
+            throw UnauthorizedException(annotation.message)
         }
 
-        // If access token is valid, use it; otherwise, attempt to refresh
+        // Determine token to use
         val tokenToUse = when {
             jwtValidator.isTokenValidAndNotBlank(accessToken) -> accessToken!!
-            refreshToken.isNullOrBlank() -> {
-                denyRequest(requestContext, "Missing refresh token")
-                return
-            }
-            else -> tryRefreshAccessToken(requestContext, refreshToken)
+            else -> refreshAccessToken(requestContext, refreshToken!!)
         }
 
-        // Check if the token has the required role
+        // Check role authorization
         if (!jwtValidator.hasRequiredRole(tokenToUse, annotation.roles.toSet())) {
-            denyRequest(requestContext, annotation.message)
+            throw UnauthorizedException(annotation.message)
         }
     }
 
-    private fun tryRefreshAccessToken(
+    private fun refreshAccessToken(
         requestContext: ContainerRequestContext,
         refreshToken: String
-    ): String = runCatching {
-        val newToken = identityServiceClient.refreshAccessToken(refreshToken)
-        val newAccessTokenCookie = createNewAccessTokenCookie(newToken)
-        requestContext.headers.add(HttpHeaders.SET_COOKIE, newAccessTokenCookie.toString())
-        newToken
-    }.getOrElse {
-        denyRequest(requestContext, "Unauthorized")
-        throw UnauthorizedException("Failed to refresh token")
+    ): String {
+        return try {
+            val newToken = identityServiceClient.refreshAccessToken(refreshToken)
+            val newAccessTokenCookie = createNewAccessTokenCookie(newToken)
+            requestContext.headers.add(HttpHeaders.SET_COOKIE, newAccessTokenCookie.toString())
+            newToken
+        } catch (e: Exception) {
+            throw UnauthorizedException("Failed to refresh token")
+        }
     }
 
     private fun createNewAccessTokenCookie(newAccessToken: String): NewCookie =
@@ -74,17 +72,8 @@ class AuthenticationFilter @Inject constructor(
             .secure(true)
             .build()
 
-    private fun denyRequest(requestContext: ContainerRequestContext, message: String) {
-        requestContext.abortWith(
-            Response.status(Response.Status.UNAUTHORIZED)
-                .entity(message)
-                .build()
-        )
-    }
-
     private fun getAuthenticationAnnotation(resourceInfo: ResourceInfo): Authentication? =
-        resourceInfo.resourceMethod.getAnnotation(Authentication::class.java)
-            ?: resourceInfo.resourceClass.getAnnotation(Authentication::class.java)
-
+        resourceInfo.resourceMethod?.getAnnotation(Authentication::class.java)
+            ?: resourceInfo.resourceClass?.getAnnotation(Authentication::class.java)
 }
 

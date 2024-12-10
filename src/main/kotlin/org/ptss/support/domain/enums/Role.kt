@@ -6,10 +6,8 @@ enum class Role {
     ADMIN, PATIENT, HCP, FAMILY_MEMBER, PRIMARY_CAREGIVER;
 
     companion object {
-        fun fromString(role: String?): Role {
-            return role?.takeUnless { it.isBlank() }
-                ?.let { valueOf(it.uppercase()) }
-                ?: throw UnauthorizedException("Role claim is missing or invalid")
-        }
+        fun fromString(value: String): Role =
+            runCatching { valueOf(value.uppercase()) }
+                .getOrElse { throw IllegalArgumentException("Invalid role: $value. Valid values are: ${values().joinToString()}") }
     }
 }
