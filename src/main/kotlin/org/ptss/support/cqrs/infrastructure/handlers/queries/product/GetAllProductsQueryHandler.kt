@@ -1,17 +1,16 @@
 package org.ptss.support.cqrs.infrastructure.handlers.queries.product
 
+import jakarta.enterprise.context.ApplicationScoped
 import org.ptss.support.cqrs.core.dtos.ProductDto
 import org.ptss.support.cqrs.core.interfaces.IQueryHandler
 import org.ptss.support.cqrs.core.queries.product.GetAllProductsQuery
 import org.ptss.support.cqrs.infrastructure.repositories.ProductRepository
 import org.ptss.support.cqrs.infrastructure.util.executeWithExceptionLoggingAsync
-import jakarta.enterprise.context.ApplicationScoped
 import org.slf4j.LoggerFactory
-
 
 @ApplicationScoped
 class GetAllProductsQueryHandler(
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
 ) : IQueryHandler<GetAllProductsQuery, List<ProductDto>> {
     private val logger = LoggerFactory.getLogger(GetAllProductsQueryHandler::class.java)
 
@@ -22,12 +21,11 @@ class GetAllProductsQueryHandler(
                     ProductDto(
                         name = product.name,
                         description = product.description,
-                        media = product.media
+                        media = product.media,
                     )
                 }
             },
-            logMessage = "Error retrieving all products"
+            logMessage = "Error retrieving all products",
         )
     }
 }
-

@@ -11,7 +11,6 @@ import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.ext.ExceptionMapper
 import jakarta.ws.rs.ext.Provider
-import org.eclipse.microprofile.faulttolerance.exceptions.BulkheadException
 import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenException
 import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException
 import org.jboss.resteasy.reactive.ClientWebApplicationException
@@ -21,7 +20,7 @@ import org.ptss.support.enums.ErrorCode
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 class GlobalExceptionHandler @Inject constructor(
-    private val requestContextService: IRequestContextService
+    private val requestContextService: IRequestContextService,
 ) : ExceptionMapper<Throwable> {
 
     override fun toResponse(exception: Throwable): Response {
@@ -33,7 +32,7 @@ class GlobalExceptionHandler @Inject constructor(
                 errorCode = exception.errorCode,
                 message = exception.message,
                 requestId = requestId,
-                details = exception.details
+                details = exception.details,
             )
 
             is ClientWebApplicationException -> {
@@ -42,7 +41,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.INTERNAL_ERROR,
                     message = message,
-                    requestId = requestId
+                    requestId = requestId,
                 )
             }
 
@@ -52,7 +51,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.NOT_FOUND,
                     message = message,
-                    requestId = requestId
+                    requestId = requestId,
                 )
             }
 
@@ -61,7 +60,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.INSUFFICIENT_PERMISSIONS,
                     message = "Client does not have the proper rights to access this resource",
-                    requestId = requestId
+                    requestId = requestId,
                 )
             }
 
@@ -71,15 +70,15 @@ class GlobalExceptionHandler @Inject constructor(
                         violation.propertyPath.toString() to mapOf(
                             "constraint" to violation.constraintDescriptor.annotation.annotationClass.simpleName,
                             "message" to violation.message,
-                            "value" to violation.invalidValue?.toString()
+                            "value" to violation.invalidValue?.toString(),
                         )
-                    }
+                    },
                 )
                 createResponse(
                     errorCode = ErrorCode.VALIDATION_ERROR,
                     message = "Validation failed",
                     requestId = requestId,
-                    details = details
+                    details = details,
                 )
             }
 
@@ -97,7 +96,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.GATEWAY_TIMEOUT,
                     message = exception.message ?: "Request timed out",
-                    requestId = requestId
+                    requestId = requestId,
                 )
             }
 
@@ -106,7 +105,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.SERVICE_UNAVAILABLE,
                     message = exception.message ?: "Service temporarily unavailable",
-                    requestId = requestId
+                    requestId = requestId,
                 )
             }
 
@@ -115,7 +114,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.INTERNAL_ERROR,
                     message = "Internal server error",
-                    requestId = requestId
+                    requestId = requestId,
                 )
             }
         }
@@ -125,13 +124,13 @@ class GlobalExceptionHandler @Inject constructor(
         errorCode: ErrorCode,
         message: String,
         requestId: String? = null,
-        details: ErrorDetails? = null
+        details: ErrorDetails? = null,
     ): Response {
         val error = ServiceError(
             code = errorCode.code,
             message = message,
             requestId = requestId,
-            details = details
+            details = details,
         )
 
         return Response.status(errorCode.status)

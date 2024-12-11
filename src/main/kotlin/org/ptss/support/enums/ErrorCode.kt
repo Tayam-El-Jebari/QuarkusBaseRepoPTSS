@@ -3,7 +3,7 @@ package org.ptss.support.enums
 enum class ErrorCode(
     val code: String,
     val status: Int,
-    val description: String
+    val description: String,
 ) {
     // Authentication errors
     INVALID_TOKEN("INVALID_TOKEN", 401, "Invalid or expired authentication token"),
@@ -25,7 +25,8 @@ enum class ErrorCode(
     INTERNAL_ERROR("INTERNAL_ERROR", 500, "An unexpected system error occurred"),
     RATE_LIMIT_EXCEEDED("RATE_LIMIT_EXCEEDED", 429, "Too many requests"),
     SERVICE_UNAVAILABLE("SERVICE_UNAVAILABLE", 503, "Service temporarily unavailable"),
-    GATEWAY_TIMEOUT("GATEWAY_TIMEOUT", 504, "Request timed out");
+    GATEWAY_TIMEOUT("GATEWAY_TIMEOUT", 504, "Request timed out"),
+    ;
 
     companion object {
         fun fromCode(code: String): ErrorCode? = values().find { it.code == code }
