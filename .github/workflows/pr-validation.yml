@@ -40,9 +40,9 @@ jobs:
       - name: Security Scans
         run: |
           echo "TODO: Add security scans (e.g., OWASP Dependency Check)"
-          
+
       - name: Set up CodeQL
-        uses: github/codeql-action/setup@v2
+        uses: github/codeql-action/setup@v3
         with:
           languages: java,kotlin,go,python,cpp,cs  # Add languages for analysis
 
