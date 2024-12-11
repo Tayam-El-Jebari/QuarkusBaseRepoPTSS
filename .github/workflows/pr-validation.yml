@@ -20,13 +20,6 @@ jobs:
         id: repo_name
         run: |
           echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: kotlin
-          # Optionally, specify a custom query suite or additional queries
-          queries: security-and-quality  # Uncomment if using custom queries
       
       - name: Code Linting
         run: |
@@ -44,6 +37,14 @@ jobs:
           
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
+
+        # Disable default CodeQL setup by skipping 'init' and use manual setup instead
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: kotlin
+          # Optional: specify a custom query suite or additional queries
+          queries: security-and-quality  # Only if you have custom queries
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
