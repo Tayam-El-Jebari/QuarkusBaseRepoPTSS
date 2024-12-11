@@ -2,21 +2,21 @@
 ## PR-Validation
 ### CodeQL
 
-## Overview
+### Overview
 CodeQL is a semantic code analysis engine that helps identify vulnerabilities and coding errors in the source code. 
 In our project, CodeQL is integrated into the GitHub Actions workflow for pull request validation.
 
-## Location
+### Location
 The CodeQL configuration is located in the GitHub Actions workflow file:
 `.github/workflows/pr-validation.yml`
 
-## Configuration Details
+### Configuration Details
 - **Languages Analyzed**: Java (Note: Kotlin is also analyzed as Java)
 - **Query Sets**:
     - `security-extended`
     - `security-and-quality`
 
-## Adding Support for New Programming Languages
+### Adding Support for New Programming Languages
 
 If you need to add support for a new programming language in CodeQL:
 
