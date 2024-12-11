@@ -25,8 +25,8 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: kotlin
-          # Explicitly specify build command for Kotlin/Quarkus
-          build-command: ./mvnw clean package -DskipTests
+          # Optionally, specify a custom query suite or additional queries
+          queries: security-and-quality  # Uncomment if using custom queries
       
       - name: Code Linting
         run: |
@@ -47,6 +47,9 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+        with:
+          category: 'security'  # Specify the category for analysis
+          output: 'codeql-results.sarif'
           
       - name: Testing
         run: |
