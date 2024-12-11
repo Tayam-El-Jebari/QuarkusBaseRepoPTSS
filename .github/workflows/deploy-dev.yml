@@ -13,7 +13,6 @@ on:
 jobs:
   deploy-dev:
     runs-on: ubuntu-latest
-    if: ${{ !github.event.repository.created }}  # Only run if NOT repository creation
     permissions:
       contents: read
       packages: write
@@ -97,14 +96,61 @@ jobs:
       - name: Login to OpenShift
         run: |
           oc login --token=${{ secrets.OSC_TOKEN }} --server=${{ secrets.OSC_SERVER }}
+
+      - name: Clone Platform Config
+        uses: actions/checkout@v3
+        with:
+          repository: your-org/platform-config
+          path: platform-config
+          token: ${{ secrets.CONFIG_REPO_PAT }}  # Need a PAT with repo access
+
+      - name: Set App Name
+        id: app_name
+        run: |
+          echo "name=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')" >> $GITHUB_OUTPUT
+
+      - name: Apply Platform Configs
+        run: |
+          NAMESPACE=${{ secrets.OSC_DEV_PROJECT }}
+
+          # Apply common configs if they exist and are not empty
+          if [ -d "platform-config/common/configmaps" ] && [ "$(ls -A platform-config/common/configmaps)" ]; then
+            oc apply -f platform-config/common/configmaps/ -n ${NAMESPACE}
+          fi
+          if [ -d "platform-config/common/secrets" ] && [ "$(ls -A platform-config/common/secrets)" ]; then
+            oc apply -f platform-config/common/secrets/ -n ${NAMESPACE}
+          fi
+
+          # Apply app-specific configs if they exist and are not empty
+          if [ -d "platform-config/apps/${{ steps.app_name.outputs.name }}/configmaps" ] && [ "$(ls -A platform-config/apps/${{ steps.app_name.outputs.name }}/configmaps)" ]; then
+            oc apply -f platform-config/apps/${{ steps.app_name.outputs.name }}/configmaps/ -n ${NAMESPACE}
+          fi
+          if [ -d "platform-config/apps/${{ steps.app_name.outputs.name }}/secrets" ] && [ "$(ls -A platform-config/apps/${{ steps.app_name.outputs.name }}/secrets)" ]; then
+            oc apply -f platform-config/apps/${{ steps.app_name.outputs.name }}/secrets/ -n ${NAMESPACE}
+          fi
+
+          # Apply environment-specific common configs
+          if [ -d "platform-config/environments/dev/common/configmaps" ] && [ "$(ls -A platform-config/environments/dev/common/configmaps)" ]; then
+            oc apply -f platform-config/environments/dev/common/configmaps/ -n ${NAMESPACE}
+          fi
+          if [ -d "platform-config/environments/dev/common/secrets" ] && [ "$(ls -A platform-config/environments/dev/common/secrets)" ]; then
+            oc apply -f platform-config/environments/dev/common/secrets/ -n ${NAMESPACE}
+          fi
+
+          # Apply environment-specific app configs
+          if [ -d "platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/configmaps" ] && [ "$(ls -A platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/configmaps)" ]; then
+            oc apply -f platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/configmaps/ -n ${NAMESPACE}
+          fi
+          if [ -d "platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/secrets" ] && [ "$(ls -A platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/secrets)" ]; then
+            oc apply -f platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/secrets/ -n ${NAMESPACE}
+          fi
       
       - name: Deploy to OpenShift Dev
         run: |
           # Create a valid helm release name and route host (lowercase)
-          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
-          ROUTE_HOST="${HELM_RELEASE_NAME}-dev.${{ secrets.APPS_DOMAIN }}"
+          ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
           
-          helm upgrade --install ${HELM_RELEASE_NAME} ./helm \
+          helm upgrade --install ${{ steps.app_name.outputs.name }} ./helm \
             --namespace ${{ secrets.OSC_DEV_PROJECT }} \
             --values ./helm/values-dev.yaml \
             --set image.registry=ghcr.io \
@@ -114,8 +160,7 @@ jobs:
               
       - name: Wait for Deployment
         run: |
-          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
-          oc rollout status deployment/${HELM_RELEASE_NAME} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=180s
+          oc rollout status deployment/${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=180s
 
       - name: Run E2E Tests
         run: |
