@@ -15,6 +15,13 @@ jobs:
         id: repo_name
         run: |
           echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: kotlin
+          # Optional: specify a custom query suite or additional queries
+          # queries: security-and-quality
       
       - name: Code Linting
         run: |
@@ -29,23 +36,12 @@ jobs:
 
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
-
-      - name: Set up CodeQL
-        uses: github/codeql-action/setup@v3
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: java,python,cpp
           
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
 
-      - name: Analyze with CodeQL
+      - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-        with:
-          category: 'security'
-          output: 'codeql-results.sarif'
           
       - name: Testing
         run: |
