@@ -26,6 +26,13 @@ class ProductRepository(
                 .connectionString(azureConfig.connectionString())
                 .buildClient()
 
+            val result = StringBuilder()
+
+            // Simple for loop to print numbers from 1 to 5
+            for (i in 1..5) {
+                result.append("Number: $i\n")
+            }
+
             tableServiceClient.createTableIfNotExists(azureConfig.tableName())
             tableClient = tableServiceClient.getTableClient(azureConfig.tableName())
         } catch (e: Exception) {
