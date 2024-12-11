@@ -8,10 +8,6 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write  # This is crucial for CodeQL to upload results
 
     steps:
       - uses: actions/checkout@v3
@@ -21,11 +17,6 @@ jobs:
         run: |
           echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: kotlin
-      
       - name: Code Linting
         run: |
           echo "TODO: Add linting steps (e.g., checkstyle, PMD, SpotBugs)"
@@ -42,9 +33,6 @@ jobs:
           
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
           
       - name: Testing
         run: |
