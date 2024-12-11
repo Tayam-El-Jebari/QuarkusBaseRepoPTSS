@@ -20,6 +20,11 @@ jobs:
         id: repo_name
         run: |
           echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: kotlin
       
       - name: Code Linting
         run: |
@@ -38,14 +43,8 @@ jobs:
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
 
-      - name: Perform CodeQL Analysis for Kotlin
+      - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-        with:
-          languages: kotlin
-          # Specify output location for the analysis results
-          output: 'codeql-results.sarif'
-          # If you want to include additional configurations or queries, specify them here
-          # queries: security-and-quality
           
       - name: Testing
         run: |
