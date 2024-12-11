@@ -23,7 +23,7 @@ class AuthenticationFilter @Inject constructor(
 ) : ContainerRequestFilter {
 
     companion object {
-        private const val AUTHENTICATION_FAILED_MESSAGE = "Authentication failed"
+        private const val AUTHENTICATION_FAILED_MESSAGE = "Authentication failed."
     }
 
     override fun filter(requestContext: ContainerRequestContext) {
