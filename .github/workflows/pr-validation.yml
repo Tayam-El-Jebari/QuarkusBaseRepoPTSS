@@ -3,23 +3,27 @@ name: 🧪 PR Validation
 on:
   pull_request:
     branches: [ development, main ]
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch: # Manual trigger
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+      pull-requests: read
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set Repository Name
         id: repo_name
         run: |
           echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
-
-      - name: Code Linting
-        run: |
-          echo "TODO: Add linting steps (e.g., checkstyle, PMD, SpotBugs)"
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -30,10 +34,27 @@ jobs:
 
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
-          
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java  # Change to 'java' since Kotlin is analyzed as Java
+          queries: security-extended,security-and-quality  # Add more comprehensive queries
+
+      - name: Code Linting
+        run: |
+          echo "TODO: Add linting steps (e.g., checkstyle, PMD, SpotBugs)"
+
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
-          
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "pr-validation"
+          upload: true
+          wait-for-processing: true
+
       - name: Testing
         run: |
           echo "TODO: Add tests"
