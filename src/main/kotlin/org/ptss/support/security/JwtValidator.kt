@@ -1,6 +1,5 @@
 package org.ptss.support.security
 
-import io.quarkus.security.UnauthorizedException
 import io.smallrye.jwt.auth.principal.JWTParser
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject

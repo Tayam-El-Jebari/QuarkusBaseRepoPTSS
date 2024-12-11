@@ -10,7 +10,6 @@ import jakarta.ws.rs.container.ResourceInfo
 import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.HttpHeaders
 import jakarta.ws.rs.core.NewCookie
-import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.ext.Provider
 import org.eclipse.microprofile.config.inject.ConfigProperty
 
@@ -35,7 +34,7 @@ class AuthenticationFilter @Inject constructor(
 
         // Validate refresh token
         if (!jwtValidator.isTokenValidAndNotBlank(refreshToken)) {
-            throw UnauthorizedException(annotation.message)
+            throw UnauthorizedException("Authentication failed")
         }
 
         // Determine token to use
@@ -46,7 +45,7 @@ class AuthenticationFilter @Inject constructor(
 
         // Check role authorization
         if (!jwtValidator.hasRequiredRole(tokenToUse, annotation.roles.toSet())) {
-            throw UnauthorizedException(annotation.message)
+            throw UnauthorizedException("Authentication failed")
         }
     }
 
@@ -60,7 +59,7 @@ class AuthenticationFilter @Inject constructor(
             requestContext.headers.add(HttpHeaders.SET_COOKIE, newAccessTokenCookie.toString())
             newToken
         } catch (e: Exception) {
-            throw UnauthorizedException("Failed to refresh token")
+            throw UnauthorizedException("Authentication failed")
         }
     }
 

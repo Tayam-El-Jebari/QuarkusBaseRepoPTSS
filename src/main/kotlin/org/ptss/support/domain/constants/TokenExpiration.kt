@@ -1,4 +1,4 @@
-package org.ptss.support.domain.contants
+package org.ptss.support.domain.constants
 
 // Constants for Token Expiration
 object TokenExpiration {

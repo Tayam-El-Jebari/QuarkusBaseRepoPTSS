@@ -3,6 +3,7 @@ package org.ptss.support.common.exceptions
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.exc.ValueInstantiationException
 import io.quarkus.logging.Log
+import io.quarkus.security.UnauthorizedException
 import io.smallrye.faulttolerance.api.RateLimitException
 import jakarta.inject.Inject
 import jakarta.validation.ConstraintViolationException
@@ -149,6 +150,15 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.SERVICE_UNAVAILABLE,
                     message = "Storage service error",
+                    requestId = requestId
+                )
+            }
+
+            is UnauthorizedException -> {
+                Log.warn("Unauthorized access attempt for request $requestId at path $path")
+                createResponse(
+                    errorCode = ErrorCode.INVALID_TOKEN,
+                    message = "Authentication failed",
                     requestId = requestId
                 )
             }
