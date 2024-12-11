@@ -100,9 +100,9 @@ jobs:
       - name: Clone Platform Config
         uses: actions/checkout@v3
         with:
-          repository: your-org/platform-config
+          repository: PTSS-Support/platform-config
           path: platform-config
-          token: ${{ secrets.CONFIG_REPO_PAT }}  # Need a PAT with repo access
+          token: ${{ secrets.PLATFORM_CONFIG_PAT }}
 
       - name: Set App Name
         id: app_name
