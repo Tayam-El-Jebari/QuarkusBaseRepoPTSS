@@ -38,19 +38,14 @@ jobs:
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
 
-        # Disable default CodeQL setup by skipping 'init' and use manual setup instead
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: kotlin
-          # Optional: specify a custom query suite or additional queries
-          queries: security-and-quality  # Only if you have custom queries
-
-      - name: Perform CodeQL Analysis
+      - name: Perform CodeQL Analysis for Kotlin
         uses: github/codeql-action/analyze@v3
         with:
-          category: 'security'  # Specify the category for analysis
+          languages: kotlin
+          # Specify output location for the analysis results
           output: 'codeql-results.sarif'
+          # If you want to include additional configurations or queries, specify them here
+          # queries: security-and-quality
           
       - name: Testing
         run: |
