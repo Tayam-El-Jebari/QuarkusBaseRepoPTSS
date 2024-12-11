@@ -20,9 +20,9 @@ class AuthenticationFilter @Inject constructor(
     @Context private val resourceInfo: ResourceInfo,
     private val identityServiceClient: IdentityServiceClient,
     private val jwtValidator: JwtValidator,
-    @ConfigProperty(name = "app.security.access-token-cookie-name", defaultValue = "access_token")
+    @ConfigProperty(name = "app.security.access-token-cookie-name")
     private val accessTokenCookieName: String,
-    @ConfigProperty(name = "app.security.refresh-token-cookie-name", defaultValue = "refresh_token")
+    @ConfigProperty(name = "app.security.refresh-token-cookie-name")
     private val refreshTokenCookieName: String
 ) : ContainerRequestFilter {
 
