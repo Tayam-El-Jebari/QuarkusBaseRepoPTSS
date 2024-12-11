@@ -11,10 +11,10 @@ import org.junit.jupiter.api.assertThrows
 import org.ptss.support.common.exceptions.APIException
 import org.ptss.support.domain.commands.CreateProductCommand
 import org.ptss.support.domain.enums.ErrorCode
-import org.ptss.support.domain.interfaces.cqrs.ICommandHandler
+import org.ptss.support.domain.interfaces.commands.ICommandHandler
 import org.ptss.support.domain.interfaces.queries.IQueryHandler
 import org.ptss.support.domain.models.Product
-import org.ptss.support.domain.querries.GetProductByIdQuery
+import org.ptss.support.domain.queries.GetProductByIdQuery
 import org.ptss.support.infrastructure.handlers.queries.product.GetAllProductsQueryHandler
 
 class ProductServiceTest {

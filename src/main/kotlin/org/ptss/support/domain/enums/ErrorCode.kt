@@ -9,6 +9,7 @@ enum class ErrorCode(
     INVALID_TOKEN("INVALID_TOKEN", 401, "Invalid or expired authentication token"),
     INVALID_CREDENTIALS("INVALID_CREDENTIALS", 401, "Invalid email or password provided"),
     EXPIRED_TOKEN("EXPIRED_TOKEN", 401, "Authentication token has expired"),
+    TOKEN_GENERATION_FAILED("TOKEN_GENERATION_FAILED", 401, "Failed to generate a valid access token"),
 
     // Authorization errors
     INSUFFICIENT_PERMISSIONS("INSUFFICIENT_PERMISSIONS", 403, "User does not have required permissions"),

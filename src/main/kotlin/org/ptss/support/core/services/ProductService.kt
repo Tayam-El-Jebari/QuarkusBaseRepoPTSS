@@ -1,10 +1,10 @@
 package org.ptss.support.core.services
 
 import org.ptss.support.domain.commands.CreateProductCommand
-import org.ptss.support.domain.interfaces.cqrs.ICommandHandler
+import org.ptss.support.domain.interfaces.commands.ICommandHandler
 import org.ptss.support.domain.interfaces.queries.IQueryHandler
-import org.ptss.support.domain.querries.GetAllProductsQuery
-import org.ptss.support.domain.querries.GetProductByIdQuery
+import org.ptss.support.domain.queries.GetAllProductsQuery
+import org.ptss.support.domain.queries.GetProductByIdQuery
 import org.ptss.support.infrastructure.util.executeWithExceptionLoggingAsync
 import jakarta.enterprise.context.ApplicationScoped
 import org.ptss.support.common.exceptions.APIException
