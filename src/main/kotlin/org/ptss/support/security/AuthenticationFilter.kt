@@ -26,6 +26,10 @@ class AuthenticationFilter @Inject constructor(
     private val refreshTokenCookieName: String
 ) : ContainerRequestFilter {
 
+    companion object {
+        private const val AUTHENTICATION_FAILED_MESSAGE = "Authentication failed"
+    }
+
     override fun filter(requestContext: ContainerRequestContext) {
         val annotation = getAuthenticationAnnotation(resourceInfo) ?: return
 
@@ -34,7 +38,7 @@ class AuthenticationFilter @Inject constructor(
 
         // Validate refresh token
         if (!jwtValidator.isTokenValidAndNotBlank(refreshToken)) {
-            throw UnauthorizedException("Authentication failed")
+            throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
         }
 
         // Determine token to use
@@ -45,7 +49,7 @@ class AuthenticationFilter @Inject constructor(
 
         // Check role authorization
         if (!jwtValidator.hasRequiredRole(tokenToUse, annotation.roles.toSet())) {
-            throw UnauthorizedException("Authentication failed")
+            throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
         }
     }
 
@@ -59,7 +63,7 @@ class AuthenticationFilter @Inject constructor(
             requestContext.headers.add(HttpHeaders.SET_COOKIE, newAccessTokenCookie.toString())
             newToken
         } catch (e: Exception) {
-            throw UnauthorizedException("Authentication failed")
+            throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
         }
     }
 
