@@ -20,10 +20,7 @@ class AuthenticationFilter @Inject constructor(
     @Context private val resourceInfo: ResourceInfo,
     private val identityServiceClient: IdentityServiceClient,
     private val jwtValidator: JwtValidator,
-    @ConfigProperty(name = "app.security.access-token-cookie-name")
-    private val accessTokenCookieName: String,
-    @ConfigProperty(name = "app.security.refresh-token-cookie-name")
-    private val refreshTokenCookieName: String
+    private val securityProperties: SecurityProperties
 ) : ContainerRequestFilter {
 
     companion object {
@@ -33,8 +30,8 @@ class AuthenticationFilter @Inject constructor(
     override fun filter(requestContext: ContainerRequestContext) {
         val annotation = getAuthenticationAnnotation(resourceInfo) ?: return
 
-        val accessToken = requestContext.cookies[accessTokenCookieName]?.value
-        val refreshToken = requestContext.cookies[refreshTokenCookieName]?.value
+        val accessToken = requestContext.cookies[securityProperties.accessTokenCookieName]?.value
+        val refreshToken = requestContext.cookies[securityProperties.refreshTokenCookieName]?.value
 
         // Validate refresh token
         if (!jwtValidator.isTokenValidAndNotBlank(refreshToken)) {
@@ -68,11 +65,13 @@ class AuthenticationFilter @Inject constructor(
     }
 
     private fun createNewAccessTokenCookie(newAccessToken: String): NewCookie =
-        NewCookie.Builder(accessTokenCookieName)
+        NewCookie.Builder(securityProperties.accessTokenCookieName)
             .value(newAccessToken)
-            .path("/")
-            .httpOnly(true)
-            .secure(true)
+            .path(securityProperties.accessTokenCookiePath)
+            .domain(securityProperties.accessTokenCookieDomain)
+            .maxAge(securityProperties.accessTokenCookieMaxAge)
+            .httpOnly(securityProperties.accessTokenCookieHttpOnly)
+            .secure(securityProperties.accessTokenCookieSecure)
             .build()
 
     private fun getAuthenticationAnnotation(resourceInfo: ResourceInfo): Authentication? =
