@@ -32,6 +32,9 @@ spec:
             - secretRef:
                 name: env-secrets
                 optional: true
+            - secretRef:
+                name: {{ .Release.Name }}-secrets
+                optional: true
           ports:
             {{- toYaml .Values.ports | nindent 12 }}
           {{- if .Values.readinessProbe }}
