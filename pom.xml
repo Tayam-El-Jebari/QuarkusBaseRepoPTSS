@@ -215,6 +215,11 @@
                     </pluginOptions>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.9.1.2184</version>
+            </plugin>
         </plugins>
     </build>
 
@@ -229,6 +234,8 @@
             <properties>
                 <skipITs>false</skipITs>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
+                <sonar.organization>ptss-support</sonar.organization>
+                <sonar.host.url>https://sonarcloud.io</sonar.host.url>
             </properties>
         </profile>
     </profiles>
