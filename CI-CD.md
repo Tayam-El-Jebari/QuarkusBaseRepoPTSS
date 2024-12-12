@@ -6,15 +6,16 @@
 CodeQL is a semantic code analysis engine that helps identify vulnerabilities and coding errors in the source code. 
 In our project, CodeQL is integrated into the GitHub Actions workflow for pull request validation.
 
-### Location
-The CodeQL configuration is located in the GitHub Actions workflow file:
-`.github/workflows/pr-validation.yml`
-
 ### Configuration Details
 - **Languages Analyzed**: Java (Note: Kotlin is also analyzed as Java)
 - **Query Sets**:
-    - `security-extended`
-    - `security-and-quality`
+    - `security-extended`: Deep security vulnerability detection
+    - `security-and-quality`: Combines security with code quality check
+
+- Most additional query sets either:
+    1. Overlap with these two sets
+    2. Provide less comprehensive coverage
+    3. Add minimal unique value
 
 ### Adding Support for New Programming Languages
 
@@ -32,3 +33,4 @@ If you need to add support for a new programming language in CodeQL:
     - Supported languages include: C/C++, C#, Go, Java, JavaScript/TypeScript, Python, Ruby
 
 3. Update the workflow to include any language-specific setup or dependencies required for the new language.
+
