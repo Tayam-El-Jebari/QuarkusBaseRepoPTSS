@@ -12,6 +12,7 @@ on:
 jobs:
   deploy-prod:
     runs-on: ubuntu-latest
+    if: ${{ !github.event.repository.created }}  # Only run if NOT repository creation
     permissions:
       contents: read
       packages: write
