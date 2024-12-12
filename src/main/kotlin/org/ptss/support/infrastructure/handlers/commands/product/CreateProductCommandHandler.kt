@@ -8,6 +8,7 @@ import org.ptss.support.infrastructure.util.executeWithExceptionLoggingAsync
 import jakarta.enterprise.context.ApplicationScoped
 import org.slf4j.LoggerFactory
 
+
 @ApplicationScoped
 class CreateProductCommandHandler(
     private val productRepository: ProductRepository
