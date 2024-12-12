@@ -24,6 +24,42 @@ jobs:
         run: |
           echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
+      - name: SonarQube Scan and Quality Gate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          ./mvnw sonar:sonar \
+            -Dsonar.projectKey=${{ steps.org_name.outputs.name }} \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          
+          # Quality Gate Check
+          SONAR_CE_TASK_URL=$(curl -s \
+          -u "${{ secrets.SONAR_TOKEN }}:" \
+          "${{ secrets.SONAR_HOST_URL }}/api/ce/task?componentKey=${{ steps.org_name.outputs.name }}")
+          
+          TASK_ID=$(echo $SONAR_CE_TASK_URL | jq -r '.task.id')
+          
+          # Wait for task to complete and get analysis ID
+          ANALYSIS_ID=$(curl -s \
+          -u "${{ secrets.SONAR_TOKEN }}:" \
+          "${{ secrets.SONAR_HOST_URL }}/api/ce/task?id=$TASK_ID" | \
+          jq -r '.task.analysisId')
+          
+          # Check quality gate status
+          QUALITY_GATE_STATUS=$(curl -s \
+          -u "${{ secrets.SONAR_TOKEN }}:" \
+          "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" | \
+          jq -r '.projectStatus.status')
+          
+          echo "Quality Gate Status: $QUALITY_GATE_STATUS"
+          
+          if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
+            echo "❌ Quality Gate Failed"
+            exit 1
+          fi
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
