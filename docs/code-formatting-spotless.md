@@ -6,6 +6,19 @@ Make sure the plugin is actually installed locally by running this command first
 
 Once the plugin is installed you can run it locally to format your code.
 
+
+# Must: setting op pre-commit hook
+
+## Setting Up Git Hooks
+
+Run the following command in the root of the project folder to configure Git to use the hooks folder:
+
+```
+git config core.hooksPath .github\hooks
+```
+
+Now, Git will automatically use the hook in `.github/hooks/pre-commit`.
+
 # Check the Formatting of the Entire Project
 To check if your files conform to the defined format without making any changes, you can use the following command:
 
