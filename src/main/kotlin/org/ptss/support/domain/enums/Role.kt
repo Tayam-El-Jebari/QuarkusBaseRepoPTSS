@@ -1,12 +1,9 @@
 package org.ptss.support.domain.enums
 
+import io.quarkus.security.UnauthorizedException
+
 enum class Role {
-    ADMIN,
-    PATIENT,
-    HCP,
-    FAMILY_MEMBER,
-    PRIMARY_CAREGIVER,
-    ;
+    ADMIN, PATIENT, HCP, FAMILY_MEMBER, PRIMARY_CAREGIVER;
 
     companion object {
         fun fromString(value: String): Role =

@@ -7,7 +7,7 @@ import org.ptss.support.domain.enums.Role
 
 @ApplicationScoped
 class JwtValidator @Inject constructor(
-    private val jwtParser: JWTParser,
+    private val jwtParser: JWTParser
 ) {
     fun isTokenValidAndNotBlank(token: String?): Boolean =
         !token.isNullOrBlank() && isTokenValid(token)
@@ -28,3 +28,4 @@ class JwtValidator @Inject constructor(
     fun extractClaim(token: String, claimName: String): Any? =
         jwtParser.parse(token).getClaim(claimName)
 }
+

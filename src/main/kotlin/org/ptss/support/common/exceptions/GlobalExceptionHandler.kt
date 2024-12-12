@@ -19,14 +19,14 @@ import org.eclipse.microprofile.faulttolerance.exceptions.CircuitBreakerOpenExce
 import org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException
 import org.jboss.resteasy.reactive.ClientWebApplicationException
 import org.ptss.support.core.context.IRequestContextService
-import org.ptss.support.domain.enums.ErrorCode
 import org.ptss.support.metrics.CustomMetrics
+import org.ptss.support.domain.enums.ErrorCode
 
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 class GlobalExceptionHandler @Inject constructor(
     private val requestContextService: IRequestContextService,
-    private val customMetrics: CustomMetrics,
+    private val customMetrics: CustomMetrics
 ) : ExceptionMapper<Throwable> {
 
     override fun toResponse(exception: Throwable): Response {
@@ -41,7 +41,7 @@ class GlobalExceptionHandler @Inject constructor(
                 errorCode = exception.errorCode,
                 message = exception.message,
                 requestId = requestId,
-                details = exception.details,
+                details = exception.details
             )
 
             is ClientWebApplicationException -> {
@@ -50,7 +50,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.INTERNAL_ERROR,
                     message = message,
-                    requestId = requestId,
+                    requestId = requestId
                 )
             }
 
@@ -60,7 +60,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.NOT_FOUND,
                     message = message,
-                    requestId = requestId,
+                    requestId = requestId
                 )
             }
 
@@ -69,7 +69,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.INSUFFICIENT_PERMISSIONS,
                     message = "Client does not have the proper rights to access this resource",
-                    requestId = requestId,
+                    requestId = requestId
                 )
             }
 
@@ -79,15 +79,15 @@ class GlobalExceptionHandler @Inject constructor(
                         violation.propertyPath.toString() to mapOf(
                             "constraint" to violation.constraintDescriptor.annotation.annotationClass.simpleName,
                             "message" to violation.message,
-                            "value" to violation.invalidValue?.toString(),
+                            "value" to violation.invalidValue?.toString()
                         )
-                    },
+                    }
                 )
                 createResponse(
                     errorCode = ErrorCode.VALIDATION_ERROR,
                     message = "Validation failed",
                     requestId = requestId,
-                    details = details,
+                    details = details
                 )
             }
 
@@ -105,7 +105,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.GATEWAY_TIMEOUT,
                     message = exception.message ?: "Request timed out",
-                    requestId = requestId,
+                    requestId = requestId
                 )
             }
 
@@ -114,7 +114,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.SERVICE_UNAVAILABLE,
                     message = exception.message ?: "Service temporarily unavailable",
-                    requestId = requestId,
+                    requestId = requestId
                 )
             }
 
@@ -123,7 +123,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.VALIDATION_ERROR,
                     message = "Invalid request format: ${getNullFieldFromError(exception)}",
-                    requestId = requestId,
+                    requestId = requestId
                 )
             }
 
@@ -132,7 +132,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.VALIDATION_ERROR,
                     message = "Invalid request format: ${exception.message}",
-                    requestId = requestId,
+                    requestId = requestId
                 )
             }
 
@@ -146,7 +146,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.VALIDATION_ERROR,
                     message = message,
-                    requestId = requestId,
+                    requestId = requestId
                 )
             }
 
@@ -155,7 +155,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.SERVICE_UNAVAILABLE,
                     message = "Storage service error",
-                    requestId = requestId,
+                    requestId = requestId
                 )
             }
 
@@ -164,7 +164,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.INVALID_TOKEN,
                     message = "Authentication failed",
-                    requestId = requestId,
+                    requestId = requestId
                 )
             }
 
@@ -173,7 +173,7 @@ class GlobalExceptionHandler @Inject constructor(
                 createResponse(
                     errorCode = ErrorCode.INTERNAL_ERROR,
                     message = "Internal server error",
-                    requestId = requestId,
+                    requestId = requestId
                 )
             }
         }
@@ -183,13 +183,13 @@ class GlobalExceptionHandler @Inject constructor(
         errorCode: ErrorCode,
         message: String,
         requestId: String? = null,
-        details: ErrorDetails? = null,
+        details: ErrorDetails? = null
     ): Response {
         val error = ServiceError(
             code = errorCode.code,
             message = message,
             requestId = requestId,
-            details = details,
+            details = details
         )
 
         return Response.status(errorCode.status)

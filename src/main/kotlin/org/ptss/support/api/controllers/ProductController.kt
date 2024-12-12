@@ -1,10 +1,12 @@
 package org.ptss.support.api.controllers
 
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.Path
-import jakarta.ws.rs.PathParam
 import jakarta.ws.rs.Produces
+import jakarta.ws.rs.Consumes
+import jakarta.ws.rs.GET
+import jakarta.ws.rs.POST
+import jakarta.ws.rs.PathParam
 import jakarta.ws.rs.core.MediaType
 import org.ptss.support.api.dtos.requests.CreateProductRequest
 import org.ptss.support.api.dtos.responses.CreateProductResponse
@@ -20,7 +22,7 @@ import org.ptss.support.security.Authentication
 @Consumes(MediaType.APPLICATION_JSON)
 @Authentication(roles = [Role.ADMIN])
 class ProductController(
-    private val productFacade: ProductFacade,
+    private val productFacade: ProductFacade
 ) : IProductController {
 
     override suspend fun getAllProducts(): List<ProductResponse> =
