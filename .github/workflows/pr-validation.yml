@@ -55,11 +55,6 @@ jobs:
         run: |
           echo "TODO: Add tests"
 
-      - name: Set Org Name
-        id: org_name
-        run: |
-          echo "name=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
-
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
@@ -67,9 +62,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORG: ${{ secrets.SONAR_ORG }}
         run: |
           ./mvnw sonar:sonar \
-            -Dsonar.projectKey=${{ steps.org_name.outputs.name }} \
+            -Dsonar.projectKey=${{ secrets.SONAR_ORG }} \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \

@@ -234,8 +234,6 @@
             <properties>
                 <skipITs>false</skipITs>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
-                <sonar.organization>ptss-support</sonar.organization>
-                <sonar.host.url>https://sonarcloud.io</sonar.host.url>
             </properties>
         </profile>
     </profiles>
