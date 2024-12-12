@@ -7,8 +7,8 @@
 exec 1>&2
 
 # Check if Spotless has been applied
-echo "Running Spotless apply to format code..."
-./mvnw spotless:apply
+echo "Running Spotless check..."
+./mvnw spotless:check
 
 # If Spotless check fails, reject the commit
 if [ $? -ne 0 ]; then
