@@ -69,14 +69,60 @@ jobs:
       - name: Login to OpenShift
         run: |
           oc login --token=${{ secrets.OSC_TOKEN }} --server=${{ secrets.OSC_SERVER }}
+
+      - name: Set App Name
+        id: app_name
+        run: |
+          echo "name=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')" >> $GITHUB_OUTPUT
+  
+      - name: Clone Platform Config
+        uses: actions/checkout@v3
+        with:
+          repository: PTSS-Support/platform-config
+          path: platform-config
+          token: ${{ secrets.PLATFORM_CONFIG_PAT }}
+
+      - name: Apply Platform Configs
+        run: |
+          NAMESPACE=${{ secrets.OSC_PROD_PROJECT }}
+
+          # Apply common configs if they exist and are not empty
+          if [ -d "platform-config/common/configmaps" ] && [ "$(ls -A platform-config/common/configmaps)" ]; then
+            oc apply -f platform-config/common/configmaps/ -n ${NAMESPACE}
+          fi
+          if [ -d "platform-config/common/secrets" ] && [ "$(ls -A platform-config/common/secrets)" ]; then
+            oc apply -f platform-config/common/secrets/ -n ${NAMESPACE}
+          fi
+
+          # Apply app-specific configs if they exist and are not empty
+          if [ -d "platform-config/apps/${{ steps.app_name.outputs.name }}/configmaps" ] && [ "$(ls -A platform-config/apps/${{ steps.app_name.outputs.name }}/configmaps)" ]; then
+            oc apply -f platform-config/apps/${{ steps.app_name.outputs.name }}/configmaps/ -n ${NAMESPACE}
+          fi
+          if [ -d "platform-config/apps/${{ steps.app_name.outputs.name }}/secrets" ] && [ "$(ls -A platform-config/apps/${{ steps.app_name.outputs.name }}/secrets)" ]; then
+            oc apply -f platform-config/apps/${{ steps.app_name.outputs.name }}/secrets/ -n ${NAMESPACE}
+          fi
+
+          # Apply environment-specific common configs
+          if [ -d "platform-config/environments/prod/common/configmaps" ] && [ "$(ls -A platform-config/environments/prod/common/configmaps)" ]; then
+            oc apply -f platform-config/environments/prod/common/configmaps/ -n ${NAMESPACE}
+          fi
+          if [ -d "platform-config/environments/prod/common/secrets" ] && [ "$(ls -A platform-config/environments/prod/common/secrets)" ]; then
+            oc apply -f platform-config/environments/prod/common/secrets/ -n ${NAMESPACE}
+          fi
+
+          # Apply environment-specific app configs
+          if [ -d "platform-config/environments/prod/apps/${{ steps.app_name.outputs.name }}/configmaps" ] && [ "$(ls -A platform-config/environments/prod/apps/${{ steps.app_name.outputs.name }}/configmaps)" ]; then
+            oc apply -f platform-config/environments/prod/apps/${{ steps.app_name.outputs.name }}/configmaps/ -n ${NAMESPACE}
+          fi
+          if [ -d "platform-config/environments/prod/apps/${{ steps.app_name.outputs.name }}/secrets" ] && [ "$(ls -A platform-config/environments/prod/apps/${{ steps.app_name.outputs.name }}/secrets)" ]; then
+            oc apply -f platform-config/environments/prod/apps/${{ steps.app_name.outputs.name }}/secrets/ -n ${NAMESPACE}
+          fi
       
       - name: Deploy to OpenShift Prod
         run: |
-          # Create a valid helm release name and route host (lowercase)
-          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
-          ROUTE_HOST="${HELM_RELEASE_NAME}.${{ secrets.APPS_DOMAIN }}"
+          ROUTE_HOST="${{ steps.app_name.outputs.name }}.${{ secrets.APPS_DOMAIN }}"
           
-          helm upgrade --install ${HELM_RELEASE_NAME} ./helm \
+          helm upgrade --install ${{ steps.app_name.outputs.name }} ./helm \
             --namespace ${{ secrets.OSC_PROD_PROJECT }} \
             --values ./helm/values.yaml \
             --values ./helm/values-prod.yaml \
@@ -87,20 +133,17 @@ jobs:
             
       - name: Wait for Deployment
         run: |
-          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
-          oc rollout status deployment/${HELM_RELEASE_NAME} -n ${{ secrets.OSC_PROD_PROJECT }} --timeout=300s
+          oc rollout status deployment/${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_PROD_PROJECT }} --timeout=150s
 
       - name: Verify Deployment
         run: |
-          HELM_RELEASE_NAME=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')
-          
           # Check if all pods are ready
-          READY_PODS=$(oc get deployment ${HELM_RELEASE_NAME} -n ${{ secrets.OSC_PROD_PROJECT }} -o jsonpath='{.status.readyReplicas}')
-          DESIRED_PODS=$(oc get deployment ${HELM_RELEASE_NAME} -n ${{ secrets.OSC_PROD_PROJECT }} -o jsonpath='{.spec.replicas}')
+          READY_PODS=$(oc get deployment ${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_PROD_PROJECT }} -o jsonpath='{.status.readyReplicas}')
+          DESIRED_PODS=$(oc get deployment ${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_PROD_PROJECT }} -o jsonpath='{.spec.replicas}')
           
           if [ "$READY_PODS" != "$DESIRED_PODS" ]; then
             echo "❌ Deployment verification failed: $READY_PODS/$DESIRED_PODS pods ready"
             exit 1
           fi
-          
+
           echo "✅ Deployment verification successful: $READY_PODS/$DESIRED_PODS pods ready"

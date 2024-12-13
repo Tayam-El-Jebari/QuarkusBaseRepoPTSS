@@ -10,7 +10,6 @@ resources:
   
 securityContext:
   runAsNonRoot: true
-  runAsUser: 1001
   allowPrivilegeEscalation: false
   capabilities:
     drop: ["ALL"]
