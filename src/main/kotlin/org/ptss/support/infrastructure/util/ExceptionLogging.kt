@@ -6,7 +6,7 @@ suspend fun <T> Logger.executeWithExceptionLoggingAsync(
     operation: suspend () -> T,
     logMessage: String,
     exceptionHandling: ((Exception) -> Exception)? = null,
-    vararg args: Any
+    vararg args: Any,
 ): T {
     return try {
         operation()
