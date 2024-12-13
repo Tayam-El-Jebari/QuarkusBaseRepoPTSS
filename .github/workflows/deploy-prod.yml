@@ -36,7 +36,7 @@ jobs:
           ./mvnw sonar:sonar \
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
           
           # Quality Gate Check
           SONAR_CE_TASK_URL=$(curl -s \
