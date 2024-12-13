@@ -28,16 +28,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           ./mvnw sonar:sonar \
-            -Dsonar.projectKey=${{ steps.org_name.outputs.name }} \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
           
           # Quality Gate Check
           SONAR_CE_TASK_URL=$(curl -s \
           -u "${{ secrets.SONAR_TOKEN }}:" \
-          "${{ secrets.SONAR_HOST_URL }}/api/ce/task?componentKey=${{ steps.org_name.outputs.name }}")
+          "${{ secrets.SONAR_HOST_URL }}/api/ce/task?componentKey=${{ secrets.SONAR_PROJECT_KEY }}")
           
           TASK_ID=$(echo $SONAR_CE_TASK_URL | jq -r '.task.id')
           

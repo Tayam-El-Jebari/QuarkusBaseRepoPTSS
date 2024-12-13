@@ -16,6 +16,7 @@
         <quarkus.platform.version>3.17.0</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.0</surefire-plugin.version>
+        <sonar.organization>${env.SONAR_PROJECT_KEY}</sonar.organization>
     </properties>
 
     <dependencyManagement>
