@@ -18,6 +18,7 @@
         <surefire-plugin.version>3.5.0</surefire-plugin.version>
 
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.projectKey>${project.artifactId}</sonar.projectKey>
         <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/jacoco-report/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <jacoco.version>0.8.11</jacoco.version>
     </properties>
