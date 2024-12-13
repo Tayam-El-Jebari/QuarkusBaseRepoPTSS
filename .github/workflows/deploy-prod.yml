@@ -28,6 +28,13 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
       - name: Set Repository Name
         id: repo_name
         run: |
