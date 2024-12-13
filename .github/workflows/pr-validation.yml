@@ -32,8 +32,33 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+  
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
+
+      - name: Build, Test and Analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          ./mvnw verify sonar:sonar \
+            -Dsonar.projectKey=${{ github.repository }} \
+            -Dsonar.organization=${{ secrets.SONAR_ORG_KEY }} \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Pcoverage
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -41,70 +66,12 @@ jobs:
           languages: java  # Change to 'java' since Kotlin is analyzed as Java
           queries: security-extended,security-and-quality  # Add more comprehensive queries
 
-      - name: Build with Maven
-        run: ./mvnw clean package -DskipTests
-
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "pr-validation"
           upload: true
           wait-for-processing: true
-
-      - name: Testing
-        run: |
-          echo "TODO: Add tests"
-
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: SonarQube Scan and Quality Gate
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          ./mvnw sonar:sonar \
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }}
-          
-          # Quality Gate Check
-          # This step retrieves the quality gate status from SonarQube
-          SONAR_CE_TASK_URL=$(curl -s \
-          -u "${{ secrets.SONAR_TOKEN }}:" \
-          "${{ secrets.SONAR_HOST_URL }}/api/ce/task?componentKey=${{ secrets.SONAR_PROJECT_KEY }}")
-          
-          # Extract the task ID
-          TASK_ID=$(echo $SONAR_CE_TASK_URL | jq -r '.task.id')
-          
-          # Wait for task to complete and get analysis ID
-          ANALYSIS_ID=$(curl -s \
-          -u "${{ secrets.SONAR_TOKEN }}:" \
-          "${{ secrets.SONAR_HOST_URL }}/api/ce/task?id=$TASK_ID" | \
-          jq -r '.task.analysisId')
-          
-          # Check quality gate status
-          QUALITY_GATE_STATUS=$(curl -s \
-          -u "${{ secrets.SONAR_TOKEN }}:" \
-          "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" | \
-          jq -r '.projectStatus.status')
-          
-          echo "Quality Gate Status: $QUALITY_GATE_STATUS"
-          
-          # Fail the workflow if quality gate is not passed
-          if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
-          echo "❌ Quality Gate Failed"
-          exit 1
-          fi
-
-      - name: Security Scans
-        run: |
-          echo "TODO: Add security scans (e.g., OWASP Dependency Check)"
 
       - name: Prepare Artifact Directory
         run: |
