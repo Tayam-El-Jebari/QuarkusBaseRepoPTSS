@@ -210,7 +210,7 @@ jobs:
               
       - name: Wait for Deployment
         run: |
-          oc rollout status deployment/${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=180s
+          oc rollout status deployment/${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=150s
 
       - name: Run E2E Tests
         run: |
