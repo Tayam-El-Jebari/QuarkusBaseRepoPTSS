@@ -77,7 +77,7 @@ jobs:
           # This step retrieves the quality gate status from SonarQube
           SONAR_CE_TASK_URL=$(curl -s \
           -u "${{ secrets.SONAR_TOKEN }}:" \
-          "${{ secrets.SONAR_HOST_URL }}/api/ce/task?componentKey=${{ steps.org_name.outputs.name }}")
+          "${{ secrets.SONAR_HOST_URL }}/api/ce/task?componentKey=${{ secrets.SONAR_PROJECT_KEY }}")
           
           # Extract the task ID
           TASK_ID=$(echo $SONAR_CE_TASK_URL | jq -r '.task.id')
