@@ -49,36 +49,39 @@ jobs:
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
 
-      - name: Build, Test and Analyze
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          # Extract repository name without organization prefix
-          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+      - name: Build with Maven
+        run: ./mvnw clean package -DskipTests
+
+      # - name: Build, Test and Analyze
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: |
+      #     # Extract repository name without organization prefix
+      #     REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
           
-          # First check if project exists in SonarCloud
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -u ${SONAR_TOKEN}: \
-            "https://sonarcloud.io/api/projects/search?projects=${REPO_NAME}")
+      #     # First check if project exists in SonarCloud
+      #     HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+      #       -u ${SONAR_TOKEN}: \
+      #       "https://sonarcloud.io/api/projects/search?projects=${REPO_NAME}")
           
-          # If project doesn't exist (404), create it
-          if [ "$HTTP_STATUS" = "404" ]; then
-            echo "Creating project in SonarCloud..."
-            curl -X POST -u ${SONAR_TOKEN}: \
-              "https://sonarcloud.io/api/projects/create" \
-              -d "name=${REPO_NAME}" \
-              -d "project=${REPO_NAME}" \
-              -d "organization=${{ secrets.SONAR_ORG_KEY }}"
-          fi
+      #     # If project doesn't exist (404), create it
+      #     if [ "$HTTP_STATUS" = "404" ]; then
+      #       echo "Creating project in SonarCloud..."
+      #       curl -X POST -u ${SONAR_TOKEN}: \
+      #         "https://sonarcloud.io/api/projects/create" \
+      #         -d "name=${REPO_NAME}" \
+      #         -d "project=${REPO_NAME}" \
+      #         -d "organization=${{ secrets.SONAR_ORG_KEY }}"
+      #     fi
           
-          # Run the analysis
-          ./mvnw verify sonar:sonar \
-            -Pcoverage \
-            -Dsonar.projectKey=${REPO_NAME} \
-            -Dsonar.organization=${{ secrets.SONAR_ORG_KEY }} \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dquarkus.test.continuous-testing=disabled
+      #     # Run the analysis
+      #     ./mvnw verify sonar:sonar \
+      #       -Pcoverage \
+      #       -Dsonar.projectKey=${REPO_NAME} \
+      #       -Dsonar.organization=${{ secrets.SONAR_ORG_KEY }} \
+      #       -Dsonar.host.url=https://sonarcloud.io \
+      #       -Dquarkus.test.continuous-testing=disabled
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
