@@ -6,8 +6,12 @@ on:
   workflow_dispatch: # Manual trigger
 
 jobs:
-  build:
+  build-and-analyze:
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -36,33 +40,14 @@ jobs:
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
 
-      - name: Build with Maven
-        run: ./mvnw clean package -DskipTests
-
-  security:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: java  # Change to 'java' since Kotlin is analyzed as Java
           queries: security-extended,security-and-quality  # Add more comprehensive queries
+
+      - name: Build with Maven
+        run: ./mvnw clean package -DskipTests
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -72,7 +57,7 @@ jobs:
           wait-for-processing: true
 
   test:
-    needs: build
+    needs: build-and-analyze
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
