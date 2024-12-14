@@ -30,23 +30,6 @@ jobs:
           # For artifact name
           echo "artifact_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
 
-      - name: Grant execute permission for mvnw
-        run: chmod +x mvnw
-        
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
       - name: Create Build Directory
         run: mkdir -p build/quarkus-app/
     
@@ -57,6 +40,16 @@ jobs:
           name: ${{ steps.repo_name.outputs.artifact_name }}-build
           path: build/quarkus-app/
         continue-on-error: true  # Continue if no artifact exists
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Grant execute permission for mvnw
+        run: chmod +x mvnw
 
       - name: Set up JDK if no artifact exists
         if: steps.download.outcome == 'failure'
