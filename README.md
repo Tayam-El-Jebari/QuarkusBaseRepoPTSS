@@ -4,6 +4,17 @@ This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
 
+## Setup
+
+### Setting up a new project in SonarQube Cloud
+
+1. On the top right of the SonarQube Cloud interface, select the ✚ (plus) menu and select **Analyze new project**. The **Analyze projects** page opens.
+2. Select your organization.
+3. Select the repositories you want to import.
+4. Select the **Set up** button. The **Set up project for Clean as You Code** page opens.
+5. Select the new code definition for your project.
+6. Select the **Create project** button. The project is created and the automatic analysis is started.
+
 ## Running the application in dev mode
 
 You can run your application in dev mode that enables live coding using:

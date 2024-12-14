@@ -19,6 +19,8 @@ jobs:
     environment: development
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set Repository Name
         id: repo_name
@@ -38,6 +40,16 @@ jobs:
           name: ${{ steps.repo_name.outputs.artifact_name }}-build
           path: build/quarkus-app/
         continue-on-error: true  # Continue if no artifact exists
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Grant execute permission for mvnw
+        run: chmod +x mvnw
 
       - name: Set up JDK if no artifact exists
         if: steps.download.outcome == 'failure'

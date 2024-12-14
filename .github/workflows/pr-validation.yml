@@ -32,6 +32,13 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
 
@@ -40,10 +47,6 @@ jobs:
         with:
           languages: java  # Change to 'java' since Kotlin is analyzed as Java
           queries: security-extended,security-and-quality  # Add more comprehensive queries
-
-      - name: Code Linting
-        run: |
-          echo "TODO: Add linting steps (e.g., checkstyle, PMD, SpotBugs)"
 
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
@@ -54,14 +57,6 @@ jobs:
           category: "pr-validation"
           upload: true
           wait-for-processing: true
-
-      - name: Testing
-        run: |
-          echo "TODO: Add tests"
-
-      - name: Security Scans
-        run: |
-          echo "TODO: Add security scans (e.g., OWASP Dependency Check)"
 
       - name: Prepare Artifact Directory
         run: |
