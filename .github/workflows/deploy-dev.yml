@@ -52,7 +52,7 @@ jobs:
           # Copy to the correct location for Docker
           mkdir -p build/quarkus-app/
           cp -r target/quarkus-app/* build/quarkus-app/
-          
+
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:
@@ -164,7 +164,7 @@ jobs:
             --values ./helm/values-dev.yaml \
             --set image.registry=ghcr.io \
             --set image.repository=${{ needs.package.outputs.repo_name }} \
-            --set image.tag=${{ needs.package.outputs.repo_name }} \
+            --set image.tag=${{ needs.package.outputs.image_tag }} \
             --set route.host=${ROUTE_HOST}
               
       - name: Wait for Deployment
