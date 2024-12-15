@@ -169,14 +169,6 @@ jobs:
             --set image.tag=${{ needs.package.outputs.image_tag }} \
             --set route.host=${{ env.ROUTE_HOST  }}
 
-      - name: Encode ROUTE_HOST
-        id: encode_route_host
-        run: |
-          ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
-          # Base64 encode to bypass secret detection
-          ENCODED_ROUTE_HOST=$(echo -n "$ROUTE_HOST" | base64)
-          echo "encoded_route_host=${ENCODED_ROUTE_HOST}" >> $GITHUB_OUTPUT
-
       - name: Wait for Deployment
         run: |
           oc rollout status deployment/${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=150s
@@ -196,16 +188,9 @@ jobs:
           sudo cp k6-v0.46.0-linux-amd64/k6 /usr/local/bin/
           k6 version
 
-#      - name: Run k6 Health Test
-#        run: |
-#          k6 run -e ROUTE_HOST="${{ env.ROUTE_HOST }}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
-
-      - name: Decode ROUTE_HOST
-        env:
-          ENCODED_ROUTE_HOST: ${{ needs.deploy.outputs.encoded_route_host }}
+      - name: Run k6 Health Test
         run: |
-          ROUTE_HOST=$(echo -n "$ENCODED_ROUTE_HOST" | base64 -d)
-          k6 run -e ROUTE_HOST="${ROUTE_HOST}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
+          k6 run -e ROUTE_HOST="${{ env.ROUTE_HOST }}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
 
       - name: Run E2E Tests
         run: |
