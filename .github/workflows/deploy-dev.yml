@@ -161,10 +161,9 @@ jobs:
         run: |
           # Create a valid helm release name and route host (lowercase)
           ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
-          echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_OUTPUT
+          echo "name=${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}" >> $GITHUB_OUTPUT
 
       - name: Deploy to OpenShift Dev
-        id: deploy_dev
         run: |
           helm upgrade --install ${{ steps.app_name.outputs.name }} ./helm \
             --namespace ${{ secrets.OSC_DEV_PROJECT }} \
@@ -172,7 +171,7 @@ jobs:
             --set image.registry=ghcr.io \
             --set image.repository=${{ needs.package.outputs.repo_name }} \
             --set image.tag=${{ needs.package.outputs.image_tag }} \
-            --set route.host=${{ steps.route_host.outputs.ROUTE_HOST }}
+            --set route.host=${{ steps.route_host.outputs.name }}
 
       - name: Wait for Deployment
         run: |
