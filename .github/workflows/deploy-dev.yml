@@ -198,6 +198,14 @@ jobs:
           name: route-config
           path: ./config
 
+      - name: Debug Route Host
+        run: |
+          # Show all environment variables (careful with secrets!)
+          env | grep ROUTE_HOST || true
+          
+          # Show the contents of the config file
+          cat ./config/route.env || true
+
       - name: Install k6
         run: |
           wget https://github.com/grafana/k6/releases/download/v0.46.0/k6-v0.46.0-linux-amd64.tar.gz
@@ -206,13 +214,11 @@ jobs:
           k6 version
 
       - name: Run k6 Health Test
+        env:
+          ROUTE_HOST_FROM_FILE: $(cat ./config/route.env | cut -d'=' -f2)
         run: |
-          # Source the environment file
-          source ./config/route.env
-          
-          echo "Deploying tests to: $ROUTE_HOST"
-          
-          k6 run -e ROUTE_HOST="${ROUTE_HOST}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
+          echo "Route Host from file: $ROUTE_HOST_FROM_FILE"
+          k6 run -e ROUTE_HOST="${ROUTE_HOST_FROM_FILE}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
 
       - name: Run E2E Tests
         run: |
