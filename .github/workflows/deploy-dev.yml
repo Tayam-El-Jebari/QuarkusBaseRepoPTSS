@@ -176,6 +176,9 @@ jobs:
         run: |
           oc rollout status deployment/${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=150s
 
+      - name: Debug ROUTE_HOST
+        run: echo "ROUTE_HOST=${{ steps.set_route_host.outputs.ROUTE_HOST }}"
+
   test:
     needs: deploy
     runs-on: ubuntu-latest
@@ -191,7 +194,7 @@ jobs:
           sudo cp k6-v0.46.0-linux-amd64/k6 /usr/local/bin/
           k6 version
 
-      - name: Debug ROUTE_HOST
+      - name: Debug ROUTE_HOST 2
         run: echo "ROUTE_HOST=${{ steps.set_route_host.outputs.ROUTE_HOST }}"
 
       - name: Run k6 Health Test
