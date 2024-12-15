@@ -60,27 +60,12 @@ The charts are deployed via GitHub Actions workflows. The deployment process:
 ### Required Secrets
 
 The following secrets must be configured in GitHub:
-- `OSC_TOKEN`: OpenShift login token
 - `OSC_SERVER`: OpenShift server URL
 - `OSC_DEV_PROJECT`: OpenShift development project name
+- `OSC_DEV_TOKEN`: OpenShift development login token
+- `OSC_PROD_PROJECT`: OpenShift production project name
+- `OSC_PROD_TOKEN`: OpenShift production login token
 - `APPS_DOMAIN`: Your apps domain (e.g., `apps.inholland.hcs-lab.nl`)
-
-## Health Checks
-
-Health check probes are currently commented out in `values.yaml`. To enable them:
-
-1. Add the SmallRye Health extension to your Quarkus application:
-```bash
-./mvnw quarkus:add-extension -Dextensions="smallrye-health"
-```
-
-2. Uncomment the probe configurations in `values.yaml`:
-```yaml
-readinessProbe:
-  httpGet:
-    path: /q/health/ready
-    port: http
-```
 
 ## Security
 
