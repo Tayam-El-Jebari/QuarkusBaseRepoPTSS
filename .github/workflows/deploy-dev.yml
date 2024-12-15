@@ -159,7 +159,7 @@ jobs:
           # Create a valid helm release name and route host (lowercase)
           ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
           echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_OUTPUT
-          id: set_route_host
+        id: set_route_host
           
           helm upgrade --install ${{ steps.app_name.outputs.name }} ./helm \
             --namespace ${{ secrets.OSC_DEV_PROJECT }} \
