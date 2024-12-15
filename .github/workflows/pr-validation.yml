@@ -6,14 +6,12 @@ on:
   workflow_dispatch: # Manual trigger
 
 jobs:
-  validate:
+  build-and-analyze:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       security-events: write
       actions: read
-      pull-requests: read
-
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -58,14 +56,24 @@ jobs:
           upload: true
           wait-for-processing: true
 
-      - name: Prepare Artifact Directory
-        run: |
-          mkdir -p build/quarkus-app/
-          cp -r target/quarkus-app/* build/quarkus-app/
-
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
+  test:
+    needs: build-and-analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
         with:
-          name: ${{ steps.repo_name.outputs.name }}-build
-          path: target/quarkus-app/
-          retention-days: 1
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Grant execute permission for mvnw
+        run: chmod +x mvnw
+        
+      - name: Run Tests
+        run: ./mvnw test
