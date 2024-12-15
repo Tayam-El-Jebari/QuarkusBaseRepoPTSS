@@ -161,7 +161,6 @@ jobs:
         run: |
           ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
           echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_ENV
-          echo "name=${ROUTE_HOST}" >> $GITHUB_OUTPUT
 
       - name: Deploy to OpenShift Dev
         run: |
@@ -178,7 +177,7 @@ jobs:
           oc rollout status deployment/${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=150s
 
       - name: Debug ROUTE_HOST
-        run: echo "ROUTE_HOST=${{ steps.route_host.outputs.ROUTE_HOST }}"
+        run: echo "ROUTE_HOST=${{ ROUTE_HOST }}"
 
   test:
     needs: deploy
@@ -196,7 +195,7 @@ jobs:
           k6 version
 
       - name: Debug ROUTE_HOST 2
-        run: echo "ROUTE_HOST=${{ needs.deploy.outputs.route_host }}"
+        run: echo "ROUTE_HOST=${{ env.ROUTE_HOST }}"
 
       - name: Run k6 Health Test
         run: |
