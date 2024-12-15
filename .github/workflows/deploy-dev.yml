@@ -107,6 +107,8 @@ jobs:
     needs: package
     runs-on: ubuntu-latest
     environment: development
+    outputs:
+        app_name: ${{ steps.app_name.outputs.name }}
     steps:
       - uses: actions/checkout@v3
 
@@ -154,21 +156,10 @@ jobs:
             done
           done
 
-      - name: Create Route Host Configuration
+      - name: Set Route Host
         run: |
           ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
           echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_ENV
-          
-          # Create a configuration file
-          mkdir -p ./config
-          echo "ROUTE_HOST=${ROUTE_HOST}" > ./config/route.env
-
-      - name: Upload Route Configuration
-        uses: actions/upload-artifact@v3
-        with:
-          name: route-config
-          path: ./config/route.env
-          retention-days: 1
 
       - name: Deploy to OpenShift Dev
         run: |
@@ -192,19 +183,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Download Route Configuration
-        uses: actions/download-artifact@v3
-        with:
-          name: route-config
-          path: ./config
-
-      - name: Debug Route Host
+      - name: Set Route Host
         run: |
-          # Show all environment variables (careful with secrets!)
-          env | grep ROUTE_HOST || true
-          
-          # Show the contents of the config file
-          cat ./config/route.env || true
+          ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
+          echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_ENV
 
       - name: Install k6
         run: |
@@ -214,11 +196,8 @@ jobs:
           k6 version
 
       - name: Run k6 Health Test
-        env:
-          ROUTE_HOST_FROM_FILE: $(cat ./config/route.env | cut -d'=' -f2)
         run: |
-          echo "Route Host from file: $ROUTE_HOST_FROM_FILE"
-          k6 run -e ROUTE_HOST="${ROUTE_HOST_FROM_FILE}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
+          k6 run -e ROUTE_HOST="${{ env.ROUTE_HOST  }}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
 
       - name: Run E2E Tests
         run: |
