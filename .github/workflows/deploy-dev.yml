@@ -179,10 +179,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Install k6
+      - name: Install k6 via npm
         run: |
-          sudo apt-get update
-          sudo apt-get install -y k6
+          sudo npm install -g k6
 
       - name: Run E2E Tests
         run: |
