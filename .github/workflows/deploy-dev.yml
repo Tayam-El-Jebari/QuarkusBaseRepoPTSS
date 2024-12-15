@@ -188,6 +188,9 @@ jobs:
           sudo cp k6-v0.46.0-linux-amd64/k6 /usr/local/bin/
           k6 version
 
+      - name: Debug ROUTE_HOST
+        run: echo "ROUTE_HOST=${{ needs.deploy.outputs.set_route_host.outputs.ROUTE_HOST }}"
+
       - name: Run k6 Health Test
         run: |
           k6 run -e ROUTE_HOST="${{ needs.deploy.outputs.set_route_host.outputs.ROUTE_HOST }}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
