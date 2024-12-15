@@ -153,14 +153,17 @@ jobs:
                 fi
             done
           done
-      
-      - name: Deploy to OpenShift Dev
-        id: deploy_dev
+
+      - name: Set ROUTE_HOST
+        id: set_route_host
         run: |
           # Create a valid helm release name and route host (lowercase)
           ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
           echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_OUTPUT
-          
+
+      - name: Deploy to OpenShift Dev
+        id: deploy_dev
+        run: |
           helm upgrade --install ${{ steps.app_name.outputs.name }} ./helm \
             --namespace ${{ secrets.OSC_DEV_PROJECT }} \
             --values ./helm/values-dev.yaml \
@@ -189,11 +192,11 @@ jobs:
           k6 version
 
       - name: Debug ROUTE_HOST
-        run: echo "ROUTE_HOST=${{ steps.deploy_dev.outputs.ROUTE_HOST }}"
+        run: echo "ROUTE_HOST=${{ steps.set_route_host.outputs.ROUTE_HOST }}"
 
       - name: Run k6 Health Test
         run: |
-          k6 run -e ROUTE_HOST="${{ steps.deploy_dev.outputs.ROUTE_HOST }}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
+          k6 run -e ROUTE_HOST="${{ steps.set_route_host.outputs.ROUTE_HOST }}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
 
       - name: Run E2E Tests
         run: |
