@@ -183,6 +183,8 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     environment: development
+    env:
+      ROUTE_HOST: ${{ env.ROUTE_HOST }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -199,7 +201,7 @@ jobs:
 
       - name: Run k6 Health Test
         run: |
-          k6 run -e ROUTE_HOST="${{env.ROUTE_HOST}}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
+          k6 run -e ROUTE_HOST="${{ env.ROUTE_HOST }}" src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
 
       - name: Run E2E Tests
         run: |
