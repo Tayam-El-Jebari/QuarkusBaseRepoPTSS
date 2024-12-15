@@ -128,7 +128,7 @@ jobs:
         
       - name: Login to OpenShift
         run: |
-          oc login --token=${{ secrets.OSC_TOKEN }} --server=${{ secrets.OSC_SERVER }}
+          oc login --token=${{ secrets.OSC_DEV_TOKEN }} --server=${{ secrets.OSC_SERVER }}
 
       - name: Clone Platform Config
         uses: actions/checkout@v3
