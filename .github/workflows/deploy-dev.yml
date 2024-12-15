@@ -107,8 +107,6 @@ jobs:
     needs: package
     runs-on: ubuntu-latest
     environment: development
-    outputs:
-      route_host: ${{ steps.route_host.outputs.name }}
     steps:
       - uses: actions/checkout@v3
 
@@ -170,7 +168,7 @@ jobs:
             --set image.registry=ghcr.io \
             --set image.repository=${{ needs.package.outputs.repo_name }} \
             --set image.tag=${{ needs.package.outputs.image_tag }} \
-            --set route.host=${{ steps.route_host.outputs.name }}
+            --set route.host=${{ROUTE_HOST}}
 
       - name: Wait for Deployment
         run: |
@@ -183,8 +181,6 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     environment: development
-    env:
-      ROUTE_HOST: ${{ env.ROUTE_HOST }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
