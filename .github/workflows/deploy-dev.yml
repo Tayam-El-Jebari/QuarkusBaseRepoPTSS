@@ -155,7 +155,6 @@ jobs:
           done
 
       - name: Set ROUTE_HOST
-        id: route_host
         run: |
           ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
           echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_ENV
@@ -168,14 +167,11 @@ jobs:
             --set image.registry=ghcr.io \
             --set image.repository=${{ needs.package.outputs.repo_name }} \
             --set image.tag=${{ needs.package.outputs.image_tag }} \
-            --set route.host=${{ROUTE_HOST}}
+            --set route.host=${{ env.ROUTE_HOST  }}
 
       - name: Wait for Deployment
         run: |
           oc rollout status deployment/${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=150s
-
-#      - name: Debug ROUTE_HOST
-#        run: echo "ROUTE_HOST=${{ROUTE_HOST}}"
 
   test:
     needs: deploy
@@ -191,9 +187,6 @@ jobs:
           tar -xzf k6-v0.46.0-linux-amd64.tar.gz
           sudo cp k6-v0.46.0-linux-amd64/k6 /usr/local/bin/
           k6 version
-
-#      - name: Debug ROUTE_HOST 2
-#        run: echo "ROUTE_HOST=${{env.ROUTE_HOST}}"
 
       - name: Run k6 Health Test
         run: |
