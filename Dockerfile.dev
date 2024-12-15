@@ -4,17 +4,19 @@ USER root
 RUN mkdir /app && chown 1001 /app
 
 # Install dos2unix and maven
-RUN microdnf install -y dos2unix maven
+RUN microdnf install -y dos2unix
+
+# Set JAVA_HOME explicitly
+ENV JAVA_HOME=/usr/lib/jvm/java-17
+
+WORKDIR /app
 
 # Copy Maven wrapper and pom.xml
-COPY .mvn/ .mvn/ || true  # Won't fail if directory doesn't exist
+COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 
 # Generate Maven wrapper if it doesn't exist and fix permissions
-RUN if [ ! -f ".mvn/wrapper/maven-wrapper.jar" ]; then \
-        mvn wrapper:wrapper; \
-    fi && \
-    dos2unix mvnw && \
+RUN dos2unix mvnw && \
     chmod +x mvnw && \
     chown -R 1001:0 /app
 
