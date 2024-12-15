@@ -158,6 +158,7 @@ jobs:
         run: |
           # Create a valid helm release name and route host (lowercase)
           ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
+          echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_OUTPUT
           
           helm upgrade --install ${{ steps.app_name.outputs.name }} ./helm \
             --namespace ${{ secrets.OSC_DEV_PROJECT }} \
@@ -181,10 +182,8 @@ jobs:
 
       - name: Install k6
         run: |
-          wget https://github.com/grafana/k6/releases/download/v0.46.0/k6-v0.46.0-linux-amd64.tar.gz
-          tar -xzf k6-v0.46.0-linux-amd64.tar.gz
-          sudo cp k6-v0.46.0-linux-amd64/k6 /usr/local/bin/
-          k6 version
+          npm install
+          npx k6 version
 
       - name: Run E2E Tests
         run: |
@@ -193,4 +192,6 @@ jobs:
 
       - name: Run k6 Health Test
         run: |
-          k6 run src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
+          k6 run \
+            -e ROUTE_HOST="${{ steps.deploy.outputs.ROUTE_HOST }}" \
+            src/test/kotlin/org/ptss/support/k6/scripts/api/health-test.js
