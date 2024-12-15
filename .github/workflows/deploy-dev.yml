@@ -159,7 +159,9 @@ jobs:
       - name: Set ROUTE_HOST
         id: route_host
         run: |
-          echo "name=${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}" >> $GITHUB_OUTPUT
+          ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
+          echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_ENV
+          echo "name=${ROUTE_HOST}" >> $GITHUB_OUTPUT
 
       - name: Deploy to OpenShift Dev
         run: |
