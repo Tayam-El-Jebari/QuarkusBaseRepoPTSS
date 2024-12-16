@@ -106,10 +106,12 @@ Detailed branch protection rules are configured for `development` and `main` bra
 ## Contributing
 
 1. Create a feature branch from `development`
-2. Make your changes
-3. Ensure all tests pass
-4. Run SonarQube analysis
-5. Create a pull request to `development`
+2. Implement your changes
+3. Create a pull request to `development`
+4. Automated checks will:
+   - Run tests
+   - Perform SonarQube code quality analysis
+5. Wait for review and approval from team members
 
 ## Quarkus Resources
 
