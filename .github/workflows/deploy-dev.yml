@@ -192,6 +192,7 @@ jobs:
 
       - name: Run k6 Performance Tests
         run: |
+          echo "ROUTE_HOST: ${{ needs.deploy.outputs.route_host }}"
           k6 run src/test/kotlin/org/ptss/support/k6/scenarios/main.js
         env:
           ROUTE_HOST: ${{ needs.deploy.outputs.route_host }}
