@@ -179,8 +179,8 @@ jobs:
       - name: Verify Deployment
         run: |
           # Check if all pods are ready
-          READY_PODS=$(oc get deployment ${{ steps.app_name.outputs.name }} -n ${{ vars.OSC_PROD_PROJECT }} -o jsonpath='{.status.readyReplicas}')
-          DESIRED_PODS=$(oc get deployment ${{ steps.app_name.outputs.name }} -n ${{ vars.OSC_PROD_PROJECT }} -o jsonpath='{.spec.replicas}')
+          READY_PODS=$(oc get deployment ${{ steps.app_name.outputs.name }} -n ${{ vars.OSC_DEV_PROJECT }} -o jsonpath='{.status.readyReplicas}')
+          DESIRED_PODS=$(oc get deployment ${{ steps.app_name.outputs.name }} -n ${{ vars.OSC_DEV_PROJECT }} -o jsonpath='{.spec.replicas}')
           
           if [ "$READY_PODS" != "$DESIRED_PODS" ]; then
             echo "❌ Deployment verification failed: $READY_PODS/$DESIRED_PODS pods ready"
