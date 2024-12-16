@@ -108,7 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: development
     outputs:
-        app_name: ${{ steps.app_name.outputs.name }}
+      route_host: ${{ steps.route_host.outputs.name }}
     steps:
       - uses: actions/checkout@v3
 
@@ -159,7 +159,7 @@ jobs:
       - name: Set Route Host
         run: |
           ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ vars.APPS_DOMAIN }}"
-          echo "name=${ROUTE_HOST}" >> $GITHUB_ENV
+          echo "name=${ROUTE_HOST}" >> $GITHUB_OUTPUT
 
       - name: Deploy to OpenShift Dev
         run: |
@@ -169,7 +169,7 @@ jobs:
             --set image.registry=ghcr.io \
             --set image.repository=${{ needs.package.outputs.repo_name }} \
             --set image.tag=${{ needs.package.outputs.image_tag }} \
-            --set route.host=${{ env.ROUTE_HOST  }}
+            --set route.host=${{ steps.route_host.outputs.name  }}
 
       - name: Wait for Deployment
         run: |
@@ -183,11 +183,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set Route Host
-        run: |
-          ROUTE_HOST="${{ needs.deploy.outputs.app_name }}-dev.${{ vars.APPS_DOMAIN }}"
-          echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_ENV
-
       - name: Install k6
         run: |
           wget https://github.com/grafana/k6/releases/download/v0.46.0/k6-v0.46.0-linux-amd64.tar.gz
@@ -197,9 +192,9 @@ jobs:
 
       - name: Run k6 Performance Tests
         run: |
-          k6 run -e ROUTE_HOST="${{ env.ROUTE_HOST }}" src/test/kotlin/org/ptss/support/k6/scenarios/main.js
+          k6 run -e ROUTE_HOST="${{ needs.deploy.outputs.route_host }}" src/test/kotlin/org/ptss/support/k6/scenarios/main.js
         env:
-          ROUTE_HOST: ${{ env.ROUTE_HOST }}
+          ROUTE_HOST: ${{ needs.deploy.outputs.route_host }}
 
       - name: Run E2E Tests
         run: |
