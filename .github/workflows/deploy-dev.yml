@@ -11,12 +11,10 @@ on:
         default: 'latest'
 
 jobs:
-  deploy-dev:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    environment: development
+    outputs:
+      artifact_name: ${{ steps.repo_name.outputs.artifact_name }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -30,16 +28,12 @@ jobs:
           # For artifact name
           echo "artifact_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | tr '/' '-')" >> $GITHUB_OUTPUT
 
-      - name: Create Build Directory
-        run: mkdir -p build/quarkus-app/
-    
-      - name: Download Build Artifact
-        id: download
-        uses: actions/download-artifact@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
-          name: ${{ steps.repo_name.outputs.artifact_name }}-build
-          path: build/quarkus-app/
-        continue-on-error: true  # Continue if no artifact exists
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
 
       - name: Cache Maven packages
         uses: actions/cache@v3
@@ -51,23 +45,43 @@ jobs:
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
 
-      - name: Set up JDK if no artifact exists
-        if: steps.download.outcome == 'failure'
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Build if no artifact exists
-        if: steps.download.outcome == 'failure'
+      - name: Build
         run: |
           chmod +x mvnw
           ./mvnw clean package -DskipTests
           # Copy to the correct location for Docker
           mkdir -p build/quarkus-app/
           cp -r target/quarkus-app/* build/quarkus-app/
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.repo_name.outputs.artifact_name }}
+          path: build/quarkus-app/
       
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.generate_tag.outputs.version }}
+      repo_name: ${{ steps.repo_name.outputs.name }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set Repository Name
+        id: repo_name
+        run: |
+          echo "name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.build.outputs.artifact_name }}
+          path: build/quarkus-app/
+
       - name: Generate Version Tag
         id: generate_tag
         run: |
@@ -83,17 +97,24 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify Build Directory
-        run: |
-          echo "Checking build directory contents:"
-          ls -la build/quarkus-app/
       
       - name: Build and Push Docker Image
         run: |
           docker build -t ghcr.io/${{ steps.repo_name.outputs.name }}:${{ steps.generate_tag.outputs.version }} .
           docker push ghcr.io/${{ steps.repo_name.outputs.name }}:${{ steps.generate_tag.outputs.version }}
       
+  deploy:
+    needs: package
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set App Name
+        id: app_name
+        run: |
+          echo "name=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')" >> $GITHUB_OUTPUT
+
       - name: Install OpenShift CLI
         run: |
           curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
@@ -107,7 +128,7 @@ jobs:
         
       - name: Login to OpenShift
         run: |
-          oc login --token=${{ secrets.OSC_TOKEN }} --server=${{ secrets.OSC_SERVER }}
+          oc login --token=${{ secrets.OSC_DEV_TOKEN }} --server=${{ secrets.OSC_SERVER }}
 
       - name: Clone Platform Config
         uses: actions/checkout@v3
@@ -116,46 +137,22 @@ jobs:
           path: platform-config
           token: ${{ secrets.PLATFORM_CONFIG_PAT }}
 
-      - name: Set App Name
-        id: app_name
-        run: |
-          echo "name=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]' | tr '_' '-')" >> $GITHUB_OUTPUT
-
       - name: Apply Platform Configs
         run: |
           NAMESPACE=${{ secrets.OSC_DEV_PROJECT }}
-
-          # Apply common configs if they exist and are not empty
-          if [ -d "platform-config/common/configmaps" ] && [ "$(ls -A platform-config/common/configmaps)" ]; then
-            oc apply -f platform-config/common/configmaps/ -n ${NAMESPACE}
-          fi
-          if [ -d "platform-config/common/secrets" ] && [ "$(ls -A platform-config/common/secrets)" ]; then
-            oc apply -f platform-config/common/secrets/ -n ${NAMESPACE}
-          fi
-
-          # Apply app-specific configs if they exist and are not empty
-          if [ -d "platform-config/apps/${{ steps.app_name.outputs.name }}/configmaps" ] && [ "$(ls -A platform-config/apps/${{ steps.app_name.outputs.name }}/configmaps)" ]; then
-            oc apply -f platform-config/apps/${{ steps.app_name.outputs.name }}/configmaps/ -n ${NAMESPACE}
-          fi
-          if [ -d "platform-config/apps/${{ steps.app_name.outputs.name }}/secrets" ] && [ "$(ls -A platform-config/apps/${{ steps.app_name.outputs.name }}/secrets)" ]; then
-            oc apply -f platform-config/apps/${{ steps.app_name.outputs.name }}/secrets/ -n ${NAMESPACE}
-          fi
-
-          # Apply environment-specific common configs
-          if [ -d "platform-config/environments/dev/common/configmaps" ] && [ "$(ls -A platform-config/environments/dev/common/configmaps)" ]; then
-            oc apply -f platform-config/environments/dev/common/configmaps/ -n ${NAMESPACE}
-          fi
-          if [ -d "platform-config/environments/dev/common/secrets" ] && [ "$(ls -A platform-config/environments/dev/common/secrets)" ]; then
-            oc apply -f platform-config/environments/dev/common/secrets/ -n ${NAMESPACE}
-          fi
-
-          # Apply environment-specific app configs
-          if [ -d "platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/configmaps" ] && [ "$(ls -A platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/configmaps)" ]; then
-            oc apply -f platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/configmaps/ -n ${NAMESPACE}
-          fi
-          if [ -d "platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/secrets" ] && [ "$(ls -A platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/secrets)" ]; then
-            oc apply -f platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/secrets/ -n ${NAMESPACE}
-          fi
+          
+          # Apply common configs
+          for config_type in configmaps secrets; do
+            for path in \
+              "platform-config/common/${config_type}" \
+              "platform-config/apps/${{ steps.app_name.outputs.name }}/${config_type}" \
+              "platform-config/environments/dev/common/${config_type}" \
+              "platform-config/environments/dev/apps/${{ steps.app_name.outputs.name }}/${config_type}"; do
+                if [ -d "${path}" ] && [ "$(ls -A ${path})" ]; then
+                  oc apply -f "${path}" -n ${NAMESPACE}
+                fi
+            done
+          done
       
       - name: Deploy to OpenShift Dev
         run: |
@@ -166,14 +163,19 @@ jobs:
             --namespace ${{ secrets.OSC_DEV_PROJECT }} \
             --values ./helm/values-dev.yaml \
             --set image.registry=ghcr.io \
-            --set image.repository=${{ steps.repo_name.outputs.name }} \
-            --set image.tag=${{ steps.generate_tag.outputs.version }} \
+            --set image.repository=${{ needs.package.outputs.repo_name }} \
+            --set image.tag=${{ needs.package.outputs.image_tag }} \
             --set route.host=${ROUTE_HOST}
               
       - name: Wait for Deployment
         run: |
           oc rollout status deployment/${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=150s
 
+  test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
       - name: Run E2E Tests
         run: |
           echo "TODO: Add E2E tests using your preferred testing framework"
