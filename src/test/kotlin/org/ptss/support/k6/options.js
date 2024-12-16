@@ -1,3 +1,5 @@
+import { errorRate } from './metrics.js';
+
 export const options = {
     stages: [
         { duration: '30s', target: 2 }, // 2 VUs for 30 seconds (vus = virtual users)
@@ -6,6 +8,6 @@ export const options = {
     ],
     thresholds: {
         http_req_duration: ['p(95)<500'],
-        errors: ['rate<0.01'],
+        'errors': ['rate<0.01'],
     }
 };

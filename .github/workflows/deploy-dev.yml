@@ -107,6 +107,8 @@ jobs:
     needs: package
     runs-on: ubuntu-latest
     environment: development
+    outputs:
+      route_host: ${{ steps.route_host.outputs.name }}
     steps:
       - uses: actions/checkout@v3
 
@@ -153,20 +155,23 @@ jobs:
                 fi
             done
           done
-      
+
+      - name: Set Route Host
+        id: route_host
+        run: |
+          ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ vars.APPS_DOMAIN }}"
+          echo "name=${ROUTE_HOST}" >> $GITHUB_OUTPUT
+
       - name: Deploy to OpenShift Dev
         run: |
-          # Create a valid helm release name and route host (lowercase)
-          ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
-          
           helm upgrade --install ${{ steps.app_name.outputs.name }} ./helm \
             --namespace ${{ secrets.OSC_DEV_PROJECT }} \
             --values ./helm/values-dev.yaml \
             --set image.registry=ghcr.io \
             --set image.repository=${{ needs.package.outputs.repo_name }} \
             --set image.tag=${{ needs.package.outputs.image_tag }} \
-            --set route.host=${ROUTE_HOST}
-              
+            --set route.host=${{ steps.route_host.outputs.name  }}
+
       - name: Wait for Deployment
         run: |
           oc rollout status deployment/${{ steps.app_name.outputs.name }} -n ${{ secrets.OSC_DEV_PROJECT }} --timeout=150s
@@ -176,12 +181,21 @@ jobs:
     runs-on: ubuntu-latest
     environment: development
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install k6
+        run: |
+          wget https://github.com/grafana/k6/releases/download/v0.46.0/k6-v0.46.0-linux-amd64.tar.gz
+          tar -xzf k6-v0.46.0-linux-amd64.tar.gz
+          sudo cp k6-v0.46.0-linux-amd64/k6 /usr/local/bin/
+          k6 version
+
+      - name: Run k6 Performance Tests
+        run: |
+          ROUTE_HOST=${{ needs.deploy.outputs.route_host }} k6 run src/test/kotlin/org/ptss/support/k6/scenarios/main.js
+
       - name: Run E2E Tests
         run: |
           echo "TODO: Add E2E tests using your preferred testing framework"
           echo "These tests should run against the newly deployed dev environment"
-  
-      - name: Performance Tests (Basic)
-        run: |
-          echo "TODO: Add basic k6 performance tests against dev environment"
-          echo "More extensive performance testing will be done in production deployment"
