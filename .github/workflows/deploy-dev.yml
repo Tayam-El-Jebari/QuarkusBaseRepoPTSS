@@ -197,7 +197,7 @@ jobs:
 
       - name: Run k6 Health Test
         run: |
-          k6 run -e ROUTE_HOST="${{ env.ROUTE_HOST }}" src/test/kotlin/org/ptss/support/k6/scripts/scenarios/main-tasks.js
+          k6 run -e ROUTE_HOST="${{ env.ROUTE_HOST }}" src/test/kotlin/org/ptss/support/k6/scenarios/main.js
         env:
           ROUTE_HOST: ${{ env.ROUTE_HOST }}
 
