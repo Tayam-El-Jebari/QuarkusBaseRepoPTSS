@@ -1,6 +1,6 @@
 import { exec } from 'k6/execution';
 import { check, group, sleep } from 'k6';
-import { options } from '../../options.js';
+import { options } from '../options.js';
 
 export { options };
 
