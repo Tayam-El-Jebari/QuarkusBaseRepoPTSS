@@ -185,7 +185,7 @@ jobs:
 
       - name: Set Route Host
         run: |
-          ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
+          ROUTE_HOST="${{ needs.deploy.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
           echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_ENV
 
       - name: Install k6
