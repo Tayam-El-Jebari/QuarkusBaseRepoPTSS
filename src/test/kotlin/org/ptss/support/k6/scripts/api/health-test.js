@@ -1,17 +1,6 @@
 import http from 'k6/http';
 import { check, group, sleep } from 'k6';
-import { options } from '../../options.js';
 import { errorRate } from '../../metrics.js';
-import { API_URL, HEADERS } from '../../config.js';
-
-export { options };
-
-// 1. init code
-
-export function setup() {
-    // 2. setup code
-    return { apiUrl: API_URL, headers: HEADERS };
-}
 
 export default function (data) {
     // 3. VU code
@@ -42,8 +31,4 @@ export default function (data) {
     });
 
     sleep(1);
-}
-
-export function teardown(data) {
-    // 4. teardown code
 }
