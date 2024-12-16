@@ -69,9 +69,30 @@ This is a template repository for a Quarkus-based microservice project. It provi
 ./mvnw package -Dnative -Dquarkus.native.container-build=true
 ```
 
-### Branch Protection
+### Setting up branch protection rules
 
-Detailed branch protection rules are configured for `development` and `main` branches. See the [Branch Protection](#setting-up-branch-protection-rules) section for specifics.
+1. In your new repository, go to **Settings** > **Branches** in the left sidebar. The **Branch protection rules** page opens.
+2. Select **Add branch protection rule** to create a new rule.
+3. Set up protection for the `development` branch:
+  - In **Branch name pattern**, enter `development`
+  - Enable **Require a pull request before merging**
+  - Under pull request settings, enable:
+    - **Require approvals** and set the number to 2
+    - **Dismiss stale pull request approvals when new commits are pushed**
+  - Enable **Require status checks to pass before merging**
+  - Enable **Require branches to be up to date before merging**
+  - In the status checks search box, search for and select:
+    - `build-and-analyze`
+    - `test`
+  - Select **Create** to save the rule
+4. Create another rule for the `main` branch:
+  - Select **Add branch protection rule** again
+  - In **Branch name pattern**, enter `main`
+  - Enable all settings from the development branch
+  - Additionally enable:
+    - **Do not allow bypassing the above settings**
+    - **Require linear history**
+  - Select **Create** to save the rule
 
 ### Code Quality
 
