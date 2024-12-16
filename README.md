@@ -6,6 +6,32 @@ If you want to learn more about Quarkus, please visit its website: <https://quar
 
 ## Setup
 
+### Setting up branch protection rules
+
+1. In your new repository, go to **Settings** > **Branches** in the left sidebar. The **Branch protection rules** page opens.
+2. Select **Add branch protection rule** to create a new rule.
+3. Set up protection for the `development` branch:
+  - In **Branch name pattern**, enter `development`
+  - Enable **Require a pull request before merging**
+  - Under pull request settings, enable:
+    - **Require approvals** and set the number to 2
+    - **Dismiss stale pull request approvals when new commits are pushed**
+  - Enable **Require status checks to pass before merging**
+  - Enable **Require branches to be up to date before merging**
+  - In the status checks search box, search for and select:
+    - `build-and-analyze`
+    - `test`
+  - Select **Create** to save the rule
+
+4. Create another rule for the `main` branch:
+  - Select **Add branch protection rule** again
+  - In **Branch name pattern**, enter `main`
+  - Enable all settings from the development branch
+  - Additionally enable:
+    - **Do not allow bypassing the above settings**
+    - **Require linear history**
+  - Select **Create** to save the rule
+
 ### Setting up a new project in SonarQube Cloud
 
 1. On the top right of the SonarQube Cloud interface, select the ✚ (plus) menu and select **Analyze new project**. The **Analyze projects** page opens.
