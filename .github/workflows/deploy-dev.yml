@@ -158,8 +158,8 @@ jobs:
 
       - name: Set Route Host
         run: |
-          ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ secrets.APPS_DOMAIN }}"
-          echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_ENV
+          ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ vars.APPS_DOMAIN }}"
+          echo "name=${ROUTE_HOST}" >> $GITHUB_ENV
 
       - name: Deploy to OpenShift Dev
         run: |
@@ -185,7 +185,7 @@ jobs:
 
       - name: Set Route Host
         run: |
-          ROUTE_HOST="${{ needs.deploy.outputs.app_name }}-dev.${{ secrets.APPS_DOMAIN }}"
+          ROUTE_HOST="${{ needs.deploy.outputs.app_name }}-dev.${{ vars.APPS_DOMAIN }}"
           echo "ROUTE_HOST=${ROUTE_HOST}" >> $GITHUB_ENV
 
       - name: Install k6
@@ -195,7 +195,7 @@ jobs:
           sudo cp k6-v0.46.0-linux-amd64/k6 /usr/local/bin/
           k6 version
 
-      - name: Run k6 Health Test
+      - name: Run k6 Performance Tests
         run: |
           k6 run -e ROUTE_HOST="${{ env.ROUTE_HOST }}" src/test/kotlin/org/ptss/support/k6/scenarios/main.js
         env:

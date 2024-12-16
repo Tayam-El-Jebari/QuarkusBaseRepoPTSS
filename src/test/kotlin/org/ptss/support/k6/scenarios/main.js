@@ -14,7 +14,7 @@ export default function (data) {
     healthTest(data);
 }
 
-// Sleep for 1 second between scenarios
+// Sleep for 1 second between scenarios, to avoid overwhelming the server
 sleep(1);
 
 // Add more scenarios here
