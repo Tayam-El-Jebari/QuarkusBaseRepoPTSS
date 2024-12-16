@@ -97,7 +97,7 @@ jobs:
 
       - name: Apply Platform Configs
         run: |
-          NAMESPACE=${{ secrets.OSC_PROD_PROJECT }}
+          NAMESPACE=${{ vars.OSC_PROD_PROJECT }}
           
           # Apply common configs
           for config_type in configmaps secrets; do
@@ -114,10 +114,10 @@ jobs:
       
       - name: Deploy to OpenShift Prod
         run: |
-          ROUTE_HOST="${{ needs.prepare.outputs.app_name }}.${{ secrets.APPS_DOMAIN }}"
+          ROUTE_HOST="${{ needs.prepare.outputs.app_name }}.${{ vars.APPS_DOMAIN }}"
           
           helm upgrade --install ${{ needs.prepare.outputs.app_name }} ./helm \
-            --namespace ${{ secrets.OSC_PROD_PROJECT }} \
+            --namespace ${{ vars.OSC_PROD_PROJECT }} \
             --values ./helm/values.yaml \
             --values ./helm/values-prod.yaml \
             --set image.registry=ghcr.io \
@@ -127,13 +127,13 @@ jobs:
             
       - name: Wait for Deployment
         run: |
-          oc rollout status deployment/${{ needs.prepare.outputs.app_name }} -n ${{ secrets.OSC_PROD_PROJECT }} --timeout=150s
+          oc rollout status deployment/${{ needs.prepare.outputs.app_name }} -n ${{ vars.OSC_PROD_PROJECT }} --timeout=150s
 
       - name: Verify Deployment
         run: |
           # Check if all pods are ready
-          READY_PODS=$(oc get deployment ${{ needs.prepare.outputs.app_name }} -n ${{ secrets.OSC_PROD_PROJECT }} -o jsonpath='{.status.readyReplicas}')
-          DESIRED_PODS=$(oc get deployment ${{ needs.prepare.outputs.app_name }} -n ${{ secrets.OSC_PROD_PROJECT }} -o jsonpath='{.spec.replicas}')
+          READY_PODS=$(oc get deployment ${{ needs.prepare.outputs.app_name }} -n ${{ vars.OSC_PROD_PROJECT }} -o jsonpath='{.status.readyReplicas}')
+          DESIRED_PODS=$(oc get deployment ${{ needs.prepare.outputs.app_name }} -n ${{ vars.OSC_PROD_PROJECT }} -o jsonpath='{.spec.replicas}')
           
           if [ "$READY_PODS" != "$DESIRED_PODS" ]; then
             echo "❌ Deployment verification failed: $READY_PODS/$DESIRED_PODS pods ready"

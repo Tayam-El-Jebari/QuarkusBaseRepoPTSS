@@ -61,10 +61,14 @@ The charts are deployed via GitHub Actions workflows. The deployment process:
 
 The following secrets must be configured in GitHub:
 - `OSC_SERVER`: OpenShift server URL
-- `OSC_DEV_PROJECT`: OpenShift development project name
 - `OSC_DEV_TOKEN`: OpenShift development login token
-- `OSC_PROD_PROJECT`: OpenShift production project name
 - `OSC_PROD_TOKEN`: OpenShift production login token
+
+### Required Variables
+
+The following variables must be configured in GitHub:
+- `OSC_DEV_PROJECT`: OpenShift development project name
+- `OSC_PROD_PROJECT`: OpenShift production project name
 - `APPS_DOMAIN`: Your apps domain (e.g., `apps.inholland.hcs-lab.nl`)
 
 ## Security
