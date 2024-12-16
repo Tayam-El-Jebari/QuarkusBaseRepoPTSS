@@ -157,6 +157,7 @@ jobs:
           done
 
       - name: Set Route Host
+        id: route_host
         run: |
           ROUTE_HOST="${{ steps.app_name.outputs.name }}-dev.${{ vars.APPS_DOMAIN }}"
           echo "name=${ROUTE_HOST}" >> $GITHUB_OUTPUT
