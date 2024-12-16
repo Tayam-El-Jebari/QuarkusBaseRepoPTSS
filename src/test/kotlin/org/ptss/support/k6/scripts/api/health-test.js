@@ -1,4 +1,4 @@
-import http from 'k6/http';
+import https from 'k6/https';
 import { check, group, sleep } from 'k6';
 import { options } from '../../options.js';
 import { errorRate } from '../../metrics.js';
@@ -19,7 +19,7 @@ export default function (data) {
         group('Readiness Check', () => {
             try {
                 // Make a GET request to the API
-                const res = http.get(`${data.apiUrl}/q/health/ready`, {
+                const res = https.get(`${data.apiUrl}/q/health/ready`, {
                     headers: data.headers
                 });
 
