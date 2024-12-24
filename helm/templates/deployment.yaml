@@ -29,7 +29,7 @@ spec:
                 optional: true
             # 2. App-specific configs
             - configMapRef:
-                name: { { .Release.Name } }-config
+                name: {{ .Release.Name }}-config
                 optional: true
             # 3. Environment-wide configs
             - configMapRef:
