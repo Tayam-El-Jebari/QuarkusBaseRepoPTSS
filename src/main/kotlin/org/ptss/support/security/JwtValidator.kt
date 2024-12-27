@@ -1,31 +1,33 @@
 package org.ptss.support.security
 
-import io.smallrye.jwt.auth.principal.JWTParser
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import org.ptss.support.domain.enums.Role
+import java.util.Base64
 
 @ApplicationScoped
 class JwtValidator @Inject constructor(
-    private val jwtParser: JWTParser
+    private val tokenUserExtractor: TokenUserExtractor
 ) {
-    fun isTokenValidAndNotBlank(token: String?): Boolean =
-        !token.isNullOrBlank() && isTokenValid(token)
-
-    fun hasRequiredRole(token: String, allowedRoles: Set<Role>): Boolean =
-        extractRoleFromToken(token) in allowedRoles
 
     fun isTokenValid(token: String): Boolean {
-        return runCatching { jwtParser.parse(token) }
-            .isSuccess
+        return runCatching {
+            // Decode the JWT
+            val parts = token.split(".")
+            if (parts.size != 3) return false
+
+            val payload = String(Base64.getUrlDecoder().decode(parts[1]))
+            val jsonObject = ObjectMapper().readTree(payload)
+
+            // Check expiration
+            val exp = jsonObject.get("exp").asLong()
+            val now = System.currentTimeMillis() / 1000
+
+            exp > now
+        }.getOrElse { false }
     }
 
-    fun extractRoleFromToken(token: String): Role {
-        val roleClaim = extractClaim(token, "role") as String
-        return Role.fromString(roleClaim)
-    }
-
-    fun extractClaim(token: String, claimName: String): Any? =
-        jwtParser.parse(token).getClaim(claimName)
+    fun hasRequiredRole(token: String, allowedRoles: Set<Role>): Boolean =
+        tokenUserExtractor.getUserRoles(token).any { it in allowedRoles }
 }
-
