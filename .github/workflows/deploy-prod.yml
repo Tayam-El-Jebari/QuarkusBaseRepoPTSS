@@ -58,9 +58,9 @@ jobs:
           echo "🔍 Verifying image: $IMAGE"
           
           # Try to inspect the image
-          if ! docker pull $IMAGE >/dev/null 2>&1; then
+          if ! docker pull $IMAGE >/prod/null 2>&1; then
             echo "❌ Error: Image $IMAGE not found in registry"
-            echo "Please ensure the image was built and pushed successfully in the development pipeline"
+            echo "Please ensure the image was built and pushed successfully in the production pipeline"
             exit 1
           fi
           
