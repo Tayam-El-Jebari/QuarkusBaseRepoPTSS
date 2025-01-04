@@ -15,7 +15,7 @@ import jakarta.ws.rs.ext.Provider
 @ApplicationScoped
 class AuthenticationFilter @Inject constructor(
     @Context private val resourceInfo: ResourceInfo,
-    private val jwtValidator: JwtValidator,
+    private val tokenUserExtractor: TokenUserExtractor,
     private val securityProperties: SecurityProperties
 ) : ContainerRequestFilter {
 
@@ -30,12 +30,14 @@ class AuthenticationFilter @Inject constructor(
             getAccessToken(requestContext)
         }.getOrNull() ?: throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
 
-        if (!jwtValidator.isTokenValid(accessToken)) {
-            Log.warn("Invalid access token used for request")
+        val userRoles = tokenUserExtractor.getUserRoles(accessToken)
+        if (userRoles.isEmpty()) {
+            Log.error("Failed to extract roles or token expired")
             throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
         }
 
-        if (!jwtValidator.hasRequiredRole(accessToken, annotation.roles.toSet())) {
+        val requiredRoles = annotation.roles.toSet()
+        if (requiredRoles.isNotEmpty() && userRoles.none { it in requiredRoles }) {
             Log.warn("User does not have required roles for request")
             throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
         }
