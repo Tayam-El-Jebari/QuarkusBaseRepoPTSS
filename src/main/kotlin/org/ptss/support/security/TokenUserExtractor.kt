@@ -14,7 +14,7 @@ class TokenUserExtractor @Inject constructor(
         return runCatching {
             val jwt = jwtParser.parse(token)
             if (isExpired(jwt)) return null
-            jwt.subject // or jwt.getClaim("user_id")
+            jwt.getClaim<String>("user_id")
         }.getOrNull()
     }
 
