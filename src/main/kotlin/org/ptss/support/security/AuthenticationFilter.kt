@@ -10,14 +10,13 @@ import jakarta.ws.rs.container.ContainerRequestFilter
 import jakarta.ws.rs.container.ResourceInfo
 import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.ext.Provider
-import org.ptss.support.infrastructure.util.CookieUtil
 
 @Provider
 @ApplicationScoped
 class AuthenticationFilter @Inject constructor(
     @Context private val resourceInfo: ResourceInfo,
     private val jwtValidator: JwtValidator,
-    private val cookieUtil: CookieUtil,
+    private val securityProperties: SecurityProperties
 ) : ContainerRequestFilter {
 
     companion object {
@@ -28,7 +27,7 @@ class AuthenticationFilter @Inject constructor(
         val annotation = getAuthenticationAnnotation(resourceInfo) ?: return
 
         val accessToken = runCatching {
-            cookieUtil.getAccessTokenFromCookie(requestContext)
+            getAccessToken(requestContext)
         }.getOrNull() ?: throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
 
         if (!jwtValidator.isTokenValid(accessToken)) {
@@ -36,11 +35,21 @@ class AuthenticationFilter @Inject constructor(
             throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
         }
 
-        // Check role authorization
         if (!jwtValidator.hasRequiredRole(accessToken, annotation.roles.toSet())) {
             Log.warn("User does not have required roles for request")
             throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
         }
+    }
+
+    private fun getAccessToken(requestContext: ContainerRequestContext): String {
+        val token = requestContext.cookies[securityProperties.accessTokenCookieName]?.value
+            ?: throw UnauthorizedException("Access token not found in cookies")
+
+        if (token.isBlank()) {
+            throw UnauthorizedException("Access token is blank")
+        }
+
+        return token
     }
 
     private fun getAuthenticationAnnotation(resourceInfo: ResourceInfo): Authentication? =
