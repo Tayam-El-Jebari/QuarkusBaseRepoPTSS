@@ -1,6 +1,7 @@
 package org.ptss.support.security
 
 
+import io.quarkus.logging.Log
 import io.quarkus.security.UnauthorizedException
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
@@ -8,17 +9,13 @@ import jakarta.ws.rs.container.ContainerRequestContext
 import jakarta.ws.rs.container.ContainerRequestFilter
 import jakarta.ws.rs.container.ResourceInfo
 import jakarta.ws.rs.core.Context
-import jakarta.ws.rs.core.HttpHeaders
-import jakarta.ws.rs.core.NewCookie
 import jakarta.ws.rs.ext.Provider
-
 
 @Provider
 @ApplicationScoped
 class AuthenticationFilter @Inject constructor(
     @Context private val resourceInfo: ResourceInfo,
-    private val identityServiceClient: IdentityServiceClient,
-    private val jwtValidator: JwtValidator,
+    private val tokenUserExtractor: TokenUserExtractor,
     private val securityProperties: SecurityProperties
 ) : ContainerRequestFilter {
 
@@ -29,49 +26,33 @@ class AuthenticationFilter @Inject constructor(
     override fun filter(requestContext: ContainerRequestContext) {
         val annotation = getAuthenticationAnnotation(resourceInfo) ?: return
 
-        val accessToken = requestContext.cookies[securityProperties.accessTokenCookieName]?.value
-        val refreshToken = requestContext.cookies[securityProperties.refreshTokenCookieName]?.value
+        val accessToken = runCatching {
+            getAccessToken(requestContext)
+        }.getOrNull() ?: throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
 
-        // Validate refresh token
-        if (!jwtValidator.isTokenValidAndNotBlank(refreshToken)) {
+        val userRoles = tokenUserExtractor.getUserRoles(accessToken)
+        if (userRoles.isEmpty()) {
+            Log.error("Failed to extract roles or token expired")
             throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
         }
 
-        // Determine token to use
-        val tokenToUse = when {
-            jwtValidator.isTokenValidAndNotBlank(accessToken) -> accessToken!!
-            else -> refreshAccessToken(requestContext, refreshToken!!)
-        }
-
-        // Check role authorization
-        if (!jwtValidator.hasRequiredRole(tokenToUse, annotation.roles.toSet())) {
+        val requiredRoles = annotation.roles.toSet()
+        if (requiredRoles.isNotEmpty() && userRoles.none { it in requiredRoles }) {
+            Log.warn("User does not have required roles for request")
             throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
         }
     }
 
-    private fun refreshAccessToken(
-        requestContext: ContainerRequestContext,
-        refreshToken: String
-    ): String {
-        return try {
-            val newToken = identityServiceClient.refreshAccessToken(refreshToken)
-            val newAccessTokenCookie = createNewAccessTokenCookie(newToken)
-            requestContext.headers.add(HttpHeaders.SET_COOKIE, newAccessTokenCookie.toString())
-            newToken
-        } catch (e: Exception) {
-            throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
-        }
-    }
+    private fun getAccessToken(requestContext: ContainerRequestContext): String {
+        val token = requestContext.cookies[securityProperties.accessTokenCookieName]?.value
+            ?: throw UnauthorizedException("Access token not found in cookies")
 
-    private fun createNewAccessTokenCookie(newAccessToken: String): NewCookie =
-        NewCookie.Builder(securityProperties.accessTokenCookieName)
-            .value(newAccessToken)
-            .path(securityProperties.accessTokenCookiePath)
-            .domain(securityProperties.accessTokenCookieDomain)
-            .maxAge(securityProperties.accessTokenCookieMaxAge)
-            .httpOnly(securityProperties.accessTokenCookieHttpOnly)
-            .secure(securityProperties.accessTokenCookieSecure)
-            .build()
+        if (token.isBlank()) {
+            throw UnauthorizedException("Access token is blank")
+        }
+
+        return token
+    }
 
     private fun getAuthenticationAnnotation(resourceInfo: ResourceInfo): Authentication? =
         resourceInfo.resourceMethod?.getAnnotation(Authentication::class.java)

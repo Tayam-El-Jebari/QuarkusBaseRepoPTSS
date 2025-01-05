@@ -20,7 +20,7 @@ import org.ptss.support.security.Authentication
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Authentication(roles = [Role.ADMIN])
+@Authentication(roles = [Role.PATIENT])
 class ProductController(
     private val productFacade: ProductFacade
 ) : IProductController {
