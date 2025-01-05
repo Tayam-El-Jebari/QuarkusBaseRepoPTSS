@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 @ApplicationScoped
 class ProductService(
     private val getProductByIdHandler: IQueryHandler<GetProductByIdQuery, Product?>,
-    private val getAllProductsHandler: GetAllProductsQueryHandler, //used to be iqueryhandler, but bean error. I don't know why :'( pls help
+    private val getAllProductsHandler: GetAllProductsQueryHandler,
     private val createProductHandler: ICommandHandler<CreateProductCommand, String>
 ) {
     private val logger = LoggerFactory.getLogger(ProductService::class.java)
