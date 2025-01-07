@@ -3,21 +3,34 @@ package org.ptss.support.security
 import io.smallrye.jwt.auth.principal.JWTParser
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
-import org.eclipse.microprofile.jwt.JsonWebToken
+import org.ptss.support.common.exceptions.APIException
+import org.ptss.support.domain.enums.ErrorCode
 import org.ptss.support.domain.enums.Role
 import org.ptss.support.security.context.UserContext
-import java.time.Instant
+import io.smallrye.jwt.auth.principal.JWTAuthContextInfo
+import java.util.Optional
 import java.util.UUID
 
 @ApplicationScoped
 class TokenUserExtractor @Inject constructor(
     private val jwtParser: JWTParser
 ) {
-    fun extractUserContext(token: String): Result<UserContext> {
+    fun extractUserContext(token: String, keycloakPublicKey: Optional<String>, jwtValidationEnabled: Boolean): Result<UserContext> {
         return runCatching {
-            val jwt = jwtParser.parse(token)
-            if (isExpired(jwt)) {
-                return Result.failure(Exception("Token expired"))
+            if (jwtValidationEnabled && keycloakPublicKey.isEmpty) {
+                return Result.failure(
+                    APIException(
+                    errorCode = ErrorCode.INTERNAL_ERROR,
+                    message = "Keycloak public key is required for JWT validation")
+                )
+            }
+            val jwt = if (jwtValidationEnabled) {
+                val authContext = JWTAuthContextInfo().apply {
+                    publicKeyContent = keycloakPublicKey.orElse("")
+                }
+                jwtParser.parse(token, authContext)
+            } else {
+                jwtParser.parse(token)
             }
 
             val userId = jwt.getClaim<String>("user_id")?.let { runCatching { UUID.fromString(it) }.getOrNull() }
@@ -32,10 +45,5 @@ class TokenUserExtractor @Inject constructor(
                 hasPin = jwt.getClaim("has_pin") ?: false
             )
         }
-    }
-
-    // basic safety measure for expired tokens when service-to-service calls using the same token expires midway through
-    private fun isExpired(jwt: JsonWebToken): Boolean {
-        return jwt.expirationTime < Instant.now().epochSecond
     }
 }

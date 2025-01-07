@@ -32,9 +32,12 @@ class AuthenticationFilter @Inject constructor(
 
         val accessToken = runCatching {
             getAccessToken(requestContext)
-        }.getOrNull() ?: throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
+        }.getOrNull() ?: run {
+            Log.error("Failed to get access token")
+            throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
+        }
 
-        val context = tokenUserExtractor.extractUserContext(accessToken)
+        val context = tokenUserExtractor.extractUserContext(accessToken, securityProperties.keycloakPublicKey,  securityProperties.jwtValidationEnabled)
             .getOrElse {
                 Log.error("Failed to extract user context: ${it.message}")
                 throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
@@ -74,14 +77,27 @@ class AuthenticationFilter @Inject constructor(
     }
 
     private fun getAccessToken(requestContext: ContainerRequestContext): String {
-        val token = requestContext.cookies[securityProperties.accessTokenCookieName]?.value
-            ?: throw UnauthorizedException("Access token not found in cookies")
+        Log.debug("Headers received: ${requestContext.headers}")
+        Log.debug("Cookies received: ${requestContext.cookies}")
+        Log.debug("Authorization header: ${requestContext.getHeaderString("Authorization")}")
 
-        if (token.isBlank()) {
-            throw UnauthorizedException("Access token is blank")
+        val cookieToken = requestContext.cookies[securityProperties.accessTokenCookieName]?.value
+        if (!cookieToken.isNullOrBlank()) {
+            return cookieToken
         }
 
-        return token
+        // get from auth header, done because swagger ui does not support cookies
+        val authHeader = requestContext.getHeaderString("Authorization")
+        if (!authHeader.isNullOrBlank()) {
+            if (authHeader.startsWith("Bearer ", ignoreCase = true)) {
+                return authHeader.substring(7) // Remove "Bearer " prefix
+            }
+            // If it's just the token without Bearer prefix
+            return authHeader
+        }
+
+        Log.error("Token not found in either cookie or Authorization header")
+        throw UnauthorizedException("Access token not found")
     }
 
     private fun getAuthenticationAnnotation(resourceInfo: ResourceInfo): Authentication? =
