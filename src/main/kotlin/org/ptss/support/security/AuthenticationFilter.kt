@@ -32,9 +32,12 @@ class AuthenticationFilter @Inject constructor(
 
         val accessToken = runCatching {
             getAccessToken(requestContext)
-        }.getOrNull() ?: throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
+        }.getOrNull() ?: run {
+            Log.error("Failed to get access token")
+            throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
+        }
 
-        val context = tokenUserExtractor.extractUserContext(accessToken)
+        val context = tokenUserExtractor.extractUserContext(accessToken, securityProperties.keycloakPublicKey,  securityProperties.jwtValidationEnabled)
             .getOrElse {
                 Log.error("Failed to extract user context: ${it.message}")
                 throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
@@ -75,10 +78,11 @@ class AuthenticationFilter @Inject constructor(
 
     private fun getAccessToken(requestContext: ContainerRequestContext): String {
         val token = requestContext.cookies[securityProperties.accessTokenCookieName]?.value
-            ?: throw UnauthorizedException("Access token not found in cookies")
+        Log.debug("Token present: ${token != null}")
 
-        if (token.isBlank()) {
-            throw UnauthorizedException("Access token is blank")
+        if (token.isNullOrBlank()) {
+            Log.error("Token not found in cookie")
+            throw UnauthorizedException("Access token not found")
         }
 
         return token

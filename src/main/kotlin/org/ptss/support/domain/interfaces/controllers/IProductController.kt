@@ -44,6 +44,11 @@ interface IProductController {
             content = [Content(schema = Schema(implementation = ProductResponse::class))]
         ),
         APIResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = [Content(schema = Schema(implementation = ServiceError::class))]
+        ),
+        APIResponse(
             responseCode = "404",
             description = "Product not found",
             content = [Content(schema = Schema(implementation = ServiceError::class))]
