@@ -10,9 +10,7 @@ import org.ptss.support.api.dtos.requests.CreateProductRequest
 import org.ptss.support.api.dtos.responses.CreateProductResponse
 import org.ptss.support.api.dtos.responses.ProductResponse
 import org.ptss.support.core.facades.ProductFacade
-import org.ptss.support.domain.enums.Role
 import org.ptss.support.domain.interfaces.controllers.IProductController
-import org.ptss.support.security.Authentication
 
 @Path("/products")
 @ApplicationScoped
@@ -21,11 +19,8 @@ import org.ptss.support.security.Authentication
 class ProductController(
     private val productFacade: ProductFacade
 ) : IProductController {
-
     override suspend fun getAllProducts(): List<ProductResponse> =
         productFacade.getAllProducts()
-
-    @Authentication(roles = [Role.PATIENT], message = "To get a product, you should be authenticated as an patient")
     override suspend fun getProductById(@PathParam("id") id: String): ProductResponse? =
         productFacade.getProductById(id)
 

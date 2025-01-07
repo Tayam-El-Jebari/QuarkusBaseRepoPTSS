@@ -77,20 +77,19 @@ class AuthenticationFilter @Inject constructor(
     }
 
     private fun getAccessToken(requestContext: ContainerRequestContext): String {
-        Log.debug("Headers received: ${requestContext.headers}")
-        Log.debug("Cookies received: ${requestContext.cookies}")
-        Log.debug("Authorization header: ${requestContext.getHeaderString("Authorization")}")
-
         val cookieToken = requestContext.cookies[securityProperties.accessTokenCookieName]?.value
+        Log.debug("Cookie token present: ${cookieToken != null}")
+
         if (!cookieToken.isNullOrBlank()) {
             return cookieToken
         }
 
-        // get from auth header, done because swagger ui does not support cookies
         val authHeader = requestContext.getHeaderString("Authorization")
+        Log.debug("Authorization header present: ${authHeader != null}")
+
         if (!authHeader.isNullOrBlank()) {
             if (authHeader.startsWith("Bearer ", ignoreCase = true)) {
-                return authHeader.substring(7) // Remove "Bearer " prefix
+                return authHeader.substring(7)
             }
             // If it's just the token without Bearer prefix
             return authHeader
