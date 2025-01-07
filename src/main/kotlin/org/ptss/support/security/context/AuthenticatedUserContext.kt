@@ -11,11 +11,11 @@ class AuthenticatedUserContext @Inject constructor() {
     fun getCurrentUser(): UserContext = userContext.get()
         ?: throw UnauthorizedException("No authenticated user context found")
 
-    internal fun setCurrentUser(context: UserContext) {
+    fun setCurrentUser(context: UserContext) {
         userContext.set(context)
     }
 
-    internal fun clearCurrentUser() {
+    fun clearCurrentUser() {
         userContext.remove()
     }
 }

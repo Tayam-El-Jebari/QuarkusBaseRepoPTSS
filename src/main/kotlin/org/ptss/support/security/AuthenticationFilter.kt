@@ -80,23 +80,12 @@ class AuthenticationFilter @Inject constructor(
         val cookieToken = requestContext.cookies[securityProperties.accessTokenCookieName]?.value
         Log.debug("Cookie token present: ${cookieToken != null}")
 
-        if (!cookieToken.isNullOrBlank()) {
-            return cookieToken
+        if (cookieToken.isNullOrBlank()) {
+            Log.error("Token not found in either cookie or Authorization header")
+            throw UnauthorizedException("Access token not found")
         }
 
-        val authHeader = requestContext.getHeaderString("Authorization")
-        Log.debug("Authorization header present: ${authHeader != null}")
-
-        if (!authHeader.isNullOrBlank()) {
-            if (authHeader.startsWith("Bearer ", ignoreCase = true)) {
-                return authHeader.substring(7)
-            }
-            // If it's just the token without Bearer prefix
-            return authHeader
-        }
-
-        Log.error("Token not found in either cookie or Authorization header")
-        throw UnauthorizedException("Access token not found")
+        return cookieToken
     }
 
     private fun getAuthenticationAnnotation(resourceInfo: ResourceInfo): Authentication? =

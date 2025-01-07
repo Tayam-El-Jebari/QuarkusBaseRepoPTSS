@@ -15,8 +15,6 @@ import org.ptss.support.api.dtos.requests.CreateProductRequest
 import org.ptss.support.api.dtos.responses.CreateProductResponse
 import org.ptss.support.api.dtos.responses.ProductResponse
 import org.ptss.support.common.exceptions.ServiceError
-import org.ptss.support.domain.enums.Role
-import org.ptss.support.security.Authentication
 
 @Tag(name = "Products", description = "Product management endpoints")
 interface IProductController {
@@ -39,7 +37,6 @@ interface IProductController {
     @GET
     @Path("/{id}")
     @Operation(summary = "Get product by ID", description = "Retrieves a specific product by its ID")
-    @Authentication(roles = [Role.PATIENT])
     @APIResponses(
         APIResponse(
             responseCode = "200",

@@ -10,7 +10,9 @@ import org.ptss.support.api.dtos.requests.CreateProductRequest
 import org.ptss.support.api.dtos.responses.CreateProductResponse
 import org.ptss.support.api.dtos.responses.ProductResponse
 import org.ptss.support.core.facades.ProductFacade
+import org.ptss.support.domain.enums.Role
 import org.ptss.support.domain.interfaces.controllers.IProductController
+import org.ptss.support.security.Authentication
 
 @Path("/products")
 @ApplicationScoped
@@ -21,6 +23,8 @@ class ProductController(
 ) : IProductController {
     override suspend fun getAllProducts(): List<ProductResponse> =
         productFacade.getAllProducts()
+
+    @Authentication(roles = [Role.ADMIN])
     override suspend fun getProductById(@PathParam("id") id: String): ProductResponse? =
         productFacade.getProductById(id)
 
