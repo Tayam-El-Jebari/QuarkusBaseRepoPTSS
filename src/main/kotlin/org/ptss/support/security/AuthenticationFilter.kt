@@ -77,15 +77,15 @@ class AuthenticationFilter @Inject constructor(
     }
 
     private fun getAccessToken(requestContext: ContainerRequestContext): String {
-        val cookieToken = requestContext.cookies[securityProperties.accessTokenCookieName]?.value
-        Log.debug("Cookie token present: ${cookieToken != null}")
+        val token = requestContext.cookies[securityProperties.accessTokenCookieName]?.value
+        Log.debug("Token present: ${token != null}")
 
-        if (cookieToken.isNullOrBlank()) {
-            Log.error("Token not found in either cookie or Authorization header")
+        if (token.isNullOrBlank()) {
+            Log.error("Token not found in cookie")
             throw UnauthorizedException("Access token not found")
         }
 
-        return cookieToken
+        return token
     }
 
     private fun getAuthenticationAnnotation(resourceInfo: ResourceInfo): Authentication? =
