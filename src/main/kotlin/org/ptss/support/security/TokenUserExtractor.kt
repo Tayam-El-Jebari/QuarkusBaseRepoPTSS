@@ -10,13 +10,12 @@ import org.ptss.support.domain.enums.ErrorCode
 import org.ptss.support.domain.enums.Role
 import org.ptss.support.security.context.UserContext
 import io.smallrye.jwt.auth.principal.JWTAuthContextInfo
-import jakarta.json.JsonArray
-import jakarta.json.JsonNumber
-import jakarta.json.JsonString
-import jakarta.json.JsonValue
+import jakarta.json.*
 import org.eclipse.microprofile.jwt.JsonWebToken
+import org.ptss.support.security.jwt.SimpleJsonWebToken
 import java.util.Optional
 import java.util.UUID
+import java.util.Base64
 
 @ApplicationScoped
 class TokenUserExtractor @Inject constructor(
@@ -31,7 +30,7 @@ class TokenUserExtractor @Inject constructor(
             when (error) {
                 is APIException -> throw error
                 else -> throw UnauthorizedException(
-                    "Failed to verify token" + error.message,
+                    "Failed to verify token",
                 )
             }
         }
@@ -51,34 +50,26 @@ class TokenUserExtractor @Inject constructor(
                 publicKeyContent = keycloakPublicKey.orElse("")
             }
             return jwtParser.parse(token, authContext)
-        } else {
-            Log.info("JWT validation is disabled")
-            val parts = token.split(".")
-            if (parts.size != 3) throw UnauthorizedException("Invalid JWT format")
+        }
 
-            val payload = String(java.util.Base64.getDecoder().decode(parts[1]))
-            val claims = jakarta.json.Json.createReader(payload.byteInputStream()).readObject()
+        Log.info("JWT validation is disabled")
+        return parseUnvalidatedJWT(token)
+    }
 
-            return object : JsonWebToken {
-                override fun <T> getClaim(claimName: String): T? {
-                    val value = claims.get(claimName)
-                    return when {
-                        value == null -> null
-                        value is JsonString -> value.string as? T
-                        value is JsonNumber -> value.numberValue() as? T
-                        value is JsonArray -> value.toString() as? T
-                        value is JsonValue -> value.toString() as? T
-                        else -> value as? T
-                    }
-                }
+    private fun parseUnvalidatedJWT(token: String): JsonWebToken {
+        val parts = token.split(".")
+        if (parts.size != 3) {
+            throw UnauthorizedException("Invalid JWT format: expected 3 parts but got ${parts.size}")
+        }
 
-                override fun getClaimNames(): MutableSet<String> = claims.keys
-
-                override fun getRawToken(): String = token
-                override fun getIssuer(): String? = getClaim("iss")
-                override fun getGroups(): MutableSet<String> = mutableSetOf()
-                override fun getName(): String = getClaim("sub") ?: ""
-            }
+        return try {
+            val payload = String(Base64.getDecoder().decode(parts[1]))
+            val claims = Json.createReader(payload.byteInputStream()).readObject()
+            SimpleJsonWebToken(token, claims)
+        } catch (e: IllegalArgumentException) {
+            throw UnauthorizedException("Invalid JWT base64 encoding", e)
+        } catch (e: JsonException) {
+            throw UnauthorizedException("Invalid JWT payload JSON", e)
         }
     }
 
@@ -133,5 +124,5 @@ class TokenUserExtractor @Inject constructor(
                 else -> false
             }
             else -> false
-        }
+    }
 }
