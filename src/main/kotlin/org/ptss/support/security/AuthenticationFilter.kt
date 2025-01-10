@@ -47,7 +47,7 @@ class AuthenticationFilter @Inject constructor(
         if (context.groupId != null) {
             Log.info("User belongs to group: ${context.groupId}")
         }
-        Log.debug("Full authentication context: $context")
+        Log.info("Full authentication context: $context")
 
         // Check if user has any valid roles at all
         if (context.roles.isEmpty()) {
