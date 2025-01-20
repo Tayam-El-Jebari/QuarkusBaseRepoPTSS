@@ -43,6 +43,14 @@ class AuthenticationFilter @Inject constructor(
                 throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
             }
 
+
+        // Validate roles against annotation requirements
+        val requiredRoles = annotation.roles.toSet()
+        if (requiredRoles.isNotEmpty() && context.roles.none { it in requiredRoles }) {
+            Log.warn("User does not have required roles for request")
+            throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
+        }
+
         Log.info("Authenticated user ${context.userId} with roles: ${context.roles}")
         if (context.groupId != null) {
             Log.info("User belongs to group: ${context.groupId}")
@@ -55,13 +63,6 @@ class AuthenticationFilter @Inject constructor(
             throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
         }
 
-        // Validate roles against annotation requirements
-        val requiredRoles = annotation.roles.toSet()
-        if (requiredRoles.isNotEmpty() && context.roles.none { it in requiredRoles }) {
-            Log.warn("User does not have required roles for request")
-            throw UnauthorizedException(AUTHENTICATION_FAILED_MESSAGE)
-        }
-
         validateGroupIdConstraints(context)
 
         userContext.setCurrentUser(context)
@@ -70,8 +71,8 @@ class AuthenticationFilter @Inject constructor(
     // Just a little extra line of defense
     // See Defense in depth: https://en.wikipedia.org/wiki/Defense_in_depth_(computing)
     private fun validateGroupIdConstraints(context: UserContext) {
-        val isAdminOrHCP = context.roles.any { it == Role.ADMIN || it == Role.HCP }
-        if (!isAdminOrHCP && context.groupId == null) {
+        val isAdminOrHEALTHCAREPROFESSIONAL = context.roles.any { it == Role.ADMIN || it == Role.HEALTHCARE_PROFESSIONAL }
+        if (!isAdminOrHEALTHCAREPROFESSIONAL && context.groupId == null) {
             throw UnauthorizedException("Group ID is required for non-admin/HCP users")
         }
     }
